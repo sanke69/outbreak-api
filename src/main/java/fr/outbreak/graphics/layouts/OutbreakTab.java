@@ -34,13 +34,11 @@ public class OutbreakTab extends FitPaneWithSlideMenuOverlay {
 	public <OVP extends OutbreakViewerBase & OutbreakViewer, OO extends OutbreakOptions<OVP> & OutbreakViewer.Options<OVP>> 
 	OutbreakTab(OVP _visual, OO _option) {
 		super(_visual, FitPaneWithSlideMenuOverlay.TranslateDirection.RIGHT, OutbreakViewer.Options.width);
-		setStyle("-fx-background-color: " + "rgb(69, 169, 69)" + ";");
 
-		if(_option != null) {
+		if(_option != null)
 			getSlidePane().getChildren().setAll(_option);
-			getSlidePane().setMouseTransparent(true);
-		} else
-			getSlidePane().setStyle("-fx-background-color: " + "rgb(69, 169, 169)" + ";");
+		else
+			getSlidePane().setStyle("-fx-background-color:darkgray;");
 
 		viewer        = _visual;
 		viewerOptions = _option;
