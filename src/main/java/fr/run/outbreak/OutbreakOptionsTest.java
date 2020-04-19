@@ -21,8 +21,8 @@ import java.time.LocalDate;
 
 import fr.geodesic.referential.api.countries.Country;
 import fr.javafx.scene.PropertyEditors;
+import fr.outbreak.graphics.OutbreakViewerOptions;
 import fr.outbreak.graphics.OutbreakViewer;
-import fr.outbreak.graphics.layouts.OutbreakOptions;
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -46,7 +46,7 @@ public abstract class OutbreakOptionsTest {
 	public static class 			DemoApplication     extends DemoApplicationBase {
 
 		public Parent getRoot() {
-			OutbreakOptions<?> options = new OutbreakOptions<OutbreakViewer>() { public void initialize(OutbreakViewer _null) {} };
+			OutbreakViewerOptions<?> options = new OutbreakViewerOptions<OutbreakViewer>() { public void initialize(OutbreakViewer _null) {} };
 
 			options.addEntry(PropertyEditors.newIntegerEditor(-10, 10, 2, 0).getNode());
 			options.addEntry(PropertyEditors.newFloatingEditor(-1d, 1d, 0.05d, 0d).getNode());

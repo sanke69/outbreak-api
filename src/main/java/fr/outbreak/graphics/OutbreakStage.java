@@ -23,7 +23,6 @@ import java.util.Set;
 
 import fr.javafx.scene.layouts.FitPaneWithSlideMenuOverlay;
 import fr.outbreak.api.database.OutbreakDataBase;
-import fr.outbreak.graphics.layouts.OutbreakOptions;
 import fr.outbreak.graphics.layouts.OutbreakTab;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -130,7 +129,7 @@ public class OutbreakStage extends Stage {
         tabs    . getTabs().add(new OutbreakTab(_viewer, null).getTab());
     	_viewer . databaseProperty() . bind(databaseProperty());
     }
-    public <OVP extends OutbreakViewerBase & OutbreakViewer, OO extends OutbreakOptions<OVP>> 
+    public <OVP extends OutbreakViewerBase & OutbreakViewer, OO extends OutbreakViewerOptions<OVP>> 
     void 											registerViewerPane		(OVP _viewer, OO _options) {
     	OutbreakTab tab = new OutbreakTab(_viewer, _options);
 

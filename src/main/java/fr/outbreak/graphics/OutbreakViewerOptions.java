@@ -15,9 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.outbreak.graphics.layouts;
+package fr.outbreak.graphics;
 
-import fr.outbreak.graphics.OutbreakViewer;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Background;
@@ -27,7 +26,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 
-public abstract class OutbreakOptions<OV extends OutbreakViewer> extends GridPane implements OutbreakViewer.Options<OV> {
+public abstract class OutbreakViewerOptions<OV extends OutbreakViewer> extends GridPane implements OutbreakViewer.Options<OV> {
 	private static final int labelWidth = 120;
 	private static final int rowHeight  = 27;
 
@@ -36,7 +35,7 @@ public abstract class OutbreakOptions<OV extends OutbreakViewer> extends GridPan
 	private static final  GridPaneColumnProperty right  = new GridPaneColumnProperty( OutbreakViewer.Options.width - labelWidth, Color.GRAY.brighter() );
 	private static final  GridPaneColumnProperty unique = new GridPaneColumnProperty( OutbreakViewer.Options.width, left.color.interpolate(right.color, 0.5) );
 
-	public OutbreakOptions() {
+	public OutbreakViewerOptions() {
 		super();
 		setPrefWidth( OutbreakViewer.Options.width );
 	}

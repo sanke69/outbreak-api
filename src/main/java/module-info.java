@@ -24,8 +24,11 @@ module javafr.outbreak {
 
 	exports fr.outbreak.api.forecast;
 
-	exports fr.outbreak.graphics.charts;
 	exports fr.outbreak.graphics;
+	exports fr.outbreak.graphics.charts;
+
+	exports fr.outbreak.graphics.viewers.about;
+	exports fr.outbreak.graphics.viewers.table;
 
 	// For debug only... Eclipse issues with java modules and maven
 	exports fr.run.outbreak;
