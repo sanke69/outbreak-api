@@ -1,0 +1,126 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.pechberti.steve</groupId>
+	<artifactId>outbreak-api</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<name>JavaFR: Outbreak API</name>
+	<description>
+	Made during the SARS-Cov-2 pandemy, also named Covid-19
+	
+	Required at least Java 14 (Heavy usage of Stream, experiment some of new concepts of Java14 such as 'record', 1-line 'instanceof', and so on...)
+	
+	Implementations of some Controls not exported thanks to 'module-info.java'
+	
+	
+	Contains some extracts of another - Not Yet Released - API
+	</description>
+
+	<inceptionYear>2020</inceptionYear>
+
+	<licenses>
+		<license>
+			<name>MPL v2</name>
+			<url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>sanke</id>
+			<name>Steve PECHBERTI</name>
+			<email>steve.pechberti@gmail.com</email>
+			<organization>Scientific Researcher</organization>
+			<organizationUrl>http://sp-web.fr</organizationUrl>
+			<roles>
+				<role>Project-Administrator</role>
+				<role>Developer</role>
+			</roles>
+			<timezone>Europe/Paris</timezone>
+			<properties>
+				<picUrl>http://sp-web.fr/images/favicon.png</picUrl>
+			</properties>
+		</developer>
+	</developers>
+
+	<scm>
+		<url>https://github.com/sanke69/outbreak-api.git</url>
+		<connection>https://github.com/sanke69/outbreak-api.git</connection>
+		<developerConnection>https://github.com/sanke69/outbreak-api.git</developerConnection>
+	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>World Diffusion Repository</name>
+			<url>https://github.com/sanke69/outbreak-api.git</url>
+		</repository>
+		<site>
+			<id>site-projet</id>
+			<url>https://github.com/sanke69/outbreak-api.git</url>
+		</site>
+	</distributionManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<executions>
+					<execution>
+						<id>default-compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<source>14</source>
+							<target>14</target>
+							<release>14</release>
+							<compilerVersion>14</compilerVersion>
+							<compilerArgs>--enable-preview</compilerArgs>
+							<forceJavacCompilerUse>true</forceJavacCompilerUse>
+							<parameters>true</parameters>
+						</configuration>
+					</execution>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<skip>false</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.19</version>
+				<executions>
+					<execution>
+						<id>default-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<argLine>--enable-preview</argLine>
+							<skipTests>true</skipTests>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<argLine>--enable-preview</argLine>
+					<skipTests>true</skipTests>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

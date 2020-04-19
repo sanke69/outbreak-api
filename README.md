@@ -1,2 +1,3 @@
 # outbreak-api
-A Java API tom manipulate and visualize outbreak data
+
+A Java API to manipulate and visualize outbreak data
