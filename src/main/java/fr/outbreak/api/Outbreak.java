@@ -26,7 +26,7 @@ import fr.geodesic.referential.api.countries.Country;
 public interface Outbreak {
 
 	// Population
-	public enum Population  	{ Total, Alive, Susceptible, Infected, Recovered, Immuned, Dead; }
+	public enum Population  	{ Susceptible, Infected, Recovered, Immuned, Dead, Alive, Total; }
 
 	// Indicator - Key-Point Indicator
 	public enum KpiType        { Value,   Variation; }
@@ -34,6 +34,10 @@ public interface Outbreak {
 	public enum KpiUnit        { Count,   PerEvent, PerDay, PerMillion; }
 
 	// Observation / Report
+//	public interface Event {
+//		public Instant 	getDate();
+//		public long 		get(Population _population);
+//	}
 	public interface Report {
 		public default KpiType		getType()			{ return KpiType.Variation; }
 		public default KpiUnit		getUnit() 			{ return KpiUnit.Count; }

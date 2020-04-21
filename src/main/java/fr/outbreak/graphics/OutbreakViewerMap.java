@@ -17,13 +17,17 @@
  */
 package fr.outbreak.graphics;
 
+import javafx.event.EventHandler;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
+
+import fr.geodesic.referential.api.countries.Country;
+import fr.outbreak.api.Outbreak;
+
 public interface OutbreakViewerMap extends OutbreakViewer {
 
-	public static record CountryInfo(long population, long susceptible, long infected, long recovered, long immuned, long dead) {}
-
-//	public void setCountryInfos   (Map<Country, CountryInfo> _countryInfos);
-
-//	public void setCountryStyle   (Country _country, String _style);
-//	public void setCountryOnClick (Country _country, EventHandler<MouseEvent> _clickHandler);
+	public void setCountryColor   (Country _country, Color _fill);
+	public void setCountryInfos   (Country _country, Outbreak.Report _infos);
+	public void setCountryOnClick (Country _country, EventHandler<MouseEvent> _clickHandler);
 
 }

@@ -66,8 +66,8 @@ public abstract class SimpleOutbreakDataBase implements OutbreakDataBase {
 																				  r.getDate(), r.getCountry(), 
 																				  nbSusceptible . addAndGet( r.get(Population.Susceptible) . orElse(0L) ), 
 																				  nbInfected    . addAndGet( r.get(Population.Infected)    . orElse(0L) ), 
-																				  nbDead        . addAndGet( r.get(Population.Dead)        . orElse(0L) ), 
-																				  nbRecovered   . addAndGet( r.get(Population.Recovered)   . orElse(0L) )  ) );
+																				  nbRecovered   . addAndGet( r.get(Population.Recovered)   . orElse(0L) ), 
+																				  nbDead        . addAndGet( r.get(Population.Dead)        . orElse(0L) )  ) );
 										});
 		});
 

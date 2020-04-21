@@ -18,6 +18,7 @@
 package fr.geodesic.referential.api.countries;
 
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.Locale;
 
 /**
@@ -55,6 +56,7 @@ public enum Country {
     ZA, ZM, ZW;
 
 	public static final Comparator<Country> nameComparator = (c1, c2) -> c1.getName().compareTo( c2.getName() );
+	public static final EnumSet<Country>    notACountry    = EnumSet.of(UNKNOWN, WORLD, GROUP, EDEN, ATLANTIS, WAKANDA);
 
     public static Country of(String _value) {
     	try {
@@ -73,6 +75,10 @@ public enum Country {
     public String iso2() { return name(); }
     public String iso3() {
     	return new Locale("", name()).getISO3Country();
+    }
+
+    public boolean justConcept() {
+    	return notACountry.contains(this);
     }
 
 }

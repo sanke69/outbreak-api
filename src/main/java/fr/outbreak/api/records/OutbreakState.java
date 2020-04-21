@@ -25,61 +25,58 @@ import fr.outbreak.api.Outbreak;
 import fr.outbreak.api.Outbreak.KpiType;
 import fr.outbreak.api.Outbreak.Population;
 
-public record OutbreakRecord(KpiType type, 
+public record OutbreakState(KpiType type, 
 							 LocalDate date, Country country, 
 							 Long susceptible, Long infected, Long recovered, Long immuned, Long dead) implements Outbreak.LocalizedReport {
 
-	public OutbreakRecord(long _susceptible, long _infected) {
-		this(null, null, null, _susceptible, _infected, null, null, null);
+	// SIS Model: Susceptible <-> Infected
+	public static OutbreakState SI(KpiType type, LocalDate date, Country country, Long susceptible, Long infected) {
+		return new OutbreakState(type, date, country, susceptible, infected, null, null, null);
 	}
-	public OutbreakRecord(long _susceptible, long _infected, long _recovered) {
-		this(null, null, null, _susceptible, _infected, _recovered, null, null);
+	// SISD Model: Susceptible <-> Infected -> Dead
+	public static OutbreakState SID(KpiType type, LocalDate date, Country country, Long susceptible, Long infected, Long dead) {
+		return new OutbreakState(type, date, country, susceptible, infected, null, null, dead);
 	}
-	public OutbreakRecord(long _susceptible, long _infected, long _recovered, long _dead) {
-		this(null, null, null, _susceptible, _infected, _recovered, null, _dead);
+	// SIRD Model: Susceptible <-> Infected -> Dead
+	//                |-<  Recovered  <-|
+	public static OutbreakState SIRD(KpiType type, LocalDate date, Country country, Long susceptible, Long infected, Long recovered, Long dead) {
+		return new OutbreakState(type, date, country, susceptible, infected, recovered, null, dead);
 	}
-	public OutbreakRecord(long _susceptible, long _infected, long _recovered, long _immuned, long _dead) {
-		this(null, null, null, _susceptible, _infected, _recovered, _immuned, _dead);
+	public static OutbreakState SIRID(KpiType type, LocalDate date, Country country, Long susceptible, Long infected, Long recovered, Long immuned, Long dead) {
+		return new OutbreakState(type, date, country, susceptible, infected, recovered, immuned, dead);
 	}
 	
-	public OutbreakRecord(KpiType _type, Long _susceptible, Long _infected) {
+	
+	
+	public OutbreakState(long _susceptible, long _infected) {
+		this(null, null, null, _susceptible, _infected, null, null, null);
+	}
+	public OutbreakState(long _susceptible, long _infected, long _recovered) {
+		this(null, null, null, _susceptible, _infected, _recovered, null, null);
+	}
+	public OutbreakState(long _susceptible, long _infected, long _recovered, long _dead) {
+		this(null, null, null, _susceptible, _infected, _recovered, null, _dead);
+	}
+	public OutbreakState(long _susceptible, long _infected, long _recovered, long _immuned, long _dead) {
+		this(null, null, null, _susceptible, _infected, _recovered, _immuned, _dead);
+	}
+	public OutbreakState(KpiType _type, 
+							Long _susceptible, Long _infected) {
 		this(_type, null, null, _susceptible, _infected, null, null, null);
 	}
-	public OutbreakRecord(KpiType _type, Long _susceptible, Long _infected, Long _recovered) {
+	public OutbreakState(KpiType _type, 
+							Long _susceptible, Long _infected, Long _recovered) {
 		this(_type, null, null, _susceptible, _infected, _recovered, null, null);
 	}
-	public OutbreakRecord(KpiType _type, Long _susceptible, Long _infected, Long _recovered, Long _dead) {
+	public OutbreakState(KpiType _type, 
+							Long _susceptible, Long _infected, Long _recovered, Long _dead) {
 		this(_type, null, null, _susceptible, _infected, _recovered, null, _dead);
 	}
-	public OutbreakRecord(KpiType _type, Long _susceptible, Long _infected, Long _recovered, Long _immuned, Long _dead) {
+	public OutbreakState(KpiType _type, 
+							Long _susceptible, Long _infected, Long _recovered, Long _immuned, Long _dead) {
 		this(_type, null, null, _susceptible, _infected, _recovered, _immuned, _dead);
 	}
 
-	public OutbreakRecord(KpiType _type, LocalDate date, Long _susceptible, Long _infected) {
-		this(_type, date, null, _susceptible, _infected, null, null, null);
-	}
-	public OutbreakRecord(KpiType _type, LocalDate date, Long _susceptible, Long _infected, Long _recovered) {
-		this(_type, date, null, _susceptible, _infected, _recovered, null, null);
-	}
-	public OutbreakRecord(KpiType _type, LocalDate date, Long _susceptible, Long _infected, Long _recovered, Long _dead) {
-		this(_type, date, null, _susceptible, _infected, _recovered, null, _dead);
-	}
-	public OutbreakRecord(KpiType _type, LocalDate date, Long _susceptible, Long _infected, Long _recovered, Long _immuned, Long _dead) {
-		this(_type, date, null, _susceptible, _infected, _recovered, _immuned, _dead);
-	}
-
-	public OutbreakRecord(KpiType _type, LocalDate date, Country country, Long _susceptible, Long _infected) {
-		this(_type, date, country, _susceptible, _infected, null, null, null);
-	}
-	public OutbreakRecord(KpiType _type, LocalDate date, Country country, Long _susceptible, Long _infected, Long _recovered) {
-		this(_type, date, country, _susceptible, _infected, _recovered, null, null);
-	}
-	public OutbreakRecord(KpiType _type, LocalDate date, Country country, Long _susceptible, Long _infected, Long _recovered, Long _dead) {
-		this(_type, date, country, _susceptible, _infected, _recovered, null, _dead);
-	}
-	public OutbreakRecord(KpiType _type, LocalDate date, Country country, Optional<Long> _susceptible, Optional<Long> _infected, Optional<Long> _recovered, Optional<Long> _dead) {
-		this(_type, date, country, _susceptible.orElse(null), _infected.orElse(null), _recovered.orElse(null), null, _dead.orElse(null));
-	}
 
 	@Override public KpiType 	getType()        { return type; }
 
