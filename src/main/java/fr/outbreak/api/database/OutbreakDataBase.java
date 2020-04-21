@@ -17,43 +17,30 @@
  */
 package fr.outbreak.api.database;
 
-import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.SortedSet;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import fr.geodesic.referential.api.countries.Country;
 import fr.outbreak.api.Outbreak;
-import fr.outbreak.api.Outbreak.LocalizedReport;
 import fr.outbreak.api.records.OutbreakPeriod;
 
 public interface OutbreakDataBase {
 
 	public OutbreakPeriod 							getPeriod();
 
-	public SortedSet<Outbreak.LocalizedReport> 		getGlobalReports	(Outbreak.KpiType _type);
-	public Outbreak.LocalizedReport				 	getGlobalReport		(Outbreak.KpiType _type, LocalDate _date);
+	public <T> Collection<T> 						getIndicators		(Outbreak.KpiType _type, Function<Outbreak.LocalizedReport, T> _mapper, boolean _distinct);
+	public <T> SortedSet<T> 						getIndicators		(Outbreak.KpiType _type, Function<Outbreak.LocalizedReport, T> _mapper, Comparator<T> _comparator);
 
-	public Collection<Outbreak.LocalizedReport> 	getReports 			(Outbreak.KpiType _type);
-	public SortedSet<LocalizedReport> 				getReports 			(Outbreak.KpiType _type, LocalDate _date);
+	public Collection <Outbreak.LocalizedReport> 	getGlobalReports	(Outbreak.KpiType _type);
+	public Collection <Outbreak.LocalizedReport> 	getGlobalReports	(Outbreak.KpiType _type, Predicate<Outbreak.LocalizedReport> _filter);
+	public SortedSet  <Outbreak.LocalizedReport> 	getGlobalReports 	(Outbreak.KpiType _type, Comparator<Outbreak.LocalizedReport> _comparator);
+	public SortedSet  <Outbreak.LocalizedReport> 	getGlobalReports 	(Outbreak.KpiType _type, Predicate<Outbreak.LocalizedReport> _filter, Comparator<Outbreak.LocalizedReport> _comparator);
 
-	
+	public Collection <Outbreak.LocalizedReport> 	getReports 			(Outbreak.KpiType _type);
+	public Collection <Outbreak.LocalizedReport> 	getReports 			(Outbreak.KpiType _type, Predicate<Outbreak.LocalizedReport> _filter);
+	public SortedSet  <Outbreak.LocalizedReport> 	getReports 			(Outbreak.KpiType _type, Comparator<Outbreak.LocalizedReport> _comparator);
+	public SortedSet  <Outbreak.LocalizedReport> 	getReports 			(Outbreak.KpiType _type, Predicate<Outbreak.LocalizedReport> _filter, Comparator<Outbreak.LocalizedReport> _comparator);
 
-//	public static interface Localized {
-
-	
-	public SortedSet<Country> 						getCountries();
-//	public Collection<Location> 					getLocations();
-//	public Collection<GeoCoordinate> 				getCoordinates();
-
-//	public long							 			getPopulation(Country _country);
-
-	public SortedSet<Outbreak.LocalizedReport> 		getReports (Outbreak.KpiType _type, Country _country);
-
-	public Outbreak.LocalizedReport 				getReport  (Outbreak.KpiType _type, LocalDate _date, Country _country);
-
-//	}
-
-	
-//	public Map<LocalDate, Long>						get(Outbreak.KpiType _type, Outbreak.Population _population);
-	
 }

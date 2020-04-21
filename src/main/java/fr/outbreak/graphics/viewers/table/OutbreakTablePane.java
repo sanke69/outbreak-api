@@ -1,6 +1,6 @@
 /**
  * OutBreak API
- * Copyright (C) 2007-?XYZ  Steve PECHBERTI <steve.pechberti@laposte.net>
+ * Copyright (C) 2020-?XYZ  Steve PECHBERTI <steve.pechberti@gmail.com>
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,8 +14,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-package fr.outbreak.graphics.viewers.table;
+ */package fr.outbreak.graphics.viewers.table;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -49,24 +48,32 @@ import javafx.scene.paint.Color;
 import javafx.util.Callback;
 
 public class OutbreakTablePane extends OutbreakViewerBase implements OutbreakViewerTable {
-	private static record ColumnProperty(String name, 
-										 String property, 
-										 Callback<TableColumn<Outbreak.LocalizedReport, ?>, TableCell<Outbreak.LocalizedReport, ?>> cellFactory,
-										 double width, Color color) {
-		
-		@SuppressWarnings("unchecked")
-		public <T> ColumnProperty(String _name, 
-									 String _property, 
-									 Callback<TableColumn<Outbreak.LocalizedReport, T>, TableCell<Outbreak.LocalizedReport, T>> _cellFactory,
-									 double _width, Color _color) {
+
+	final static class ColumnProperty<T> {
+		String name;
+		String property; 
+		Callback<TableColumn<Outbreak.LocalizedReport, T>, TableCell<Outbreak.LocalizedReport, T>> cellFactory;
+		double width;
+		Color  color;
+
+		ColumnProperty(String _name, 
+								  String _property, 
+								  Callback<TableColumn<Outbreak.LocalizedReport, T>, TableCell<Outbreak.LocalizedReport, T>> _cellFactory,
+								  double _width, Color _color) {
 			super();
 
 			name        = _name;
 			property    = _property;
-			cellFactory = _cellFactory != null ? (o) -> _cellFactory.call((TableColumn<Outbreak.LocalizedReport, T>) o) : null;
+			cellFactory = _cellFactory;
 			width       = _width;
 			color       = _color;
 		}
+
+		String name()     { return name; }
+		String property() { return property; } 
+		Callback<TableColumn<Outbreak.LocalizedReport, T>, TableCell<Outbreak.LocalizedReport, T>> cellFactory() { return cellFactory; }
+		double width()    { return width; }
+		Color  color()    { return color; }
 
 	}
 
@@ -99,27 +106,26 @@ public class OutbreakTablePane extends OutbreakViewerBase implements OutbreakVie
 		return cell;
 	};
 
-	protected final static List<ColumnProperty> 
-	columnList = new ArrayList<ColumnProperty>() {
+	protected final static List<ColumnProperty<?>> 
+	columnList = new ArrayList<ColumnProperty<?>>() {
 		private static final long serialVersionUID = 1799444550933844180L;
 
 		{
-			add(new ColumnProperty("Date",       "date",            localDateCellFactory, 128, Color.BLUE ));
-			add(new ColumnProperty("Pays",       "country",                         null, 128, Color.YELLOW ));
-			add(new ColumnProperty("Population", "pop:Susceptible",                 null, 128, Color.BLUE ));
-			add(new ColumnProperty("Nvx Cas",    "pop:Infected",                    null, 128, Color.ORANGE ));
-			add(new ColumnProperty("Nvx Morts",  "pop:Dead",                        null, 128, Color.RED ));
-			add(new ColumnProperty("Nvx Guéris", "pop:Recovered",                   null, 128, Color.RED ));
+			add(new ColumnProperty<>("Date",       "date",            localDateCellFactory, 128, Color.BLUE ));
+			add(new ColumnProperty<>("Pays",       "country",                         null, 128, Color.YELLOW ));
+			add(new ColumnProperty<>("Population", "pop:Susceptible",                 null, 128, Color.BLUE ));
+			add(new ColumnProperty<>("Nvx Cas",    "pop:Infected",                    null, 128, Color.ORANGE ));
+			add(new ColumnProperty<>("Nvx Morts",  "pop:Dead",                        null, 128, Color.RED ));
+			add(new ColumnProperty<>("Nvx Guéris", "pop:Recovered",                   null, 128, Color.RED ));
 		}
 	};
 
-
-	final ObservableList<Outbreak.LocalizedReport> records   = FXCollections.observableArrayList();
-	final ObservableList<Outbreak.LocalizedReport> displayed = FXCollections.observableArrayList();
+	final ObservableList<Outbreak.LocalizedReport>  records   = FXCollections.observableArrayList();
+	final ObservableList<Outbreak.LocalizedReport>  displayed = FXCollections.observableArrayList();
 
 	final StackPane 					 			containerPane;
 	final ScrollPane 					 			scrollPane;
-	final TableView<Outbreak.LocalizedReport>      table;
+	final TableView<Outbreak.LocalizedReport>       table;
 
 	public OutbreakTablePane() {
 		this("Table View");
@@ -157,7 +163,7 @@ public class OutbreakTablePane extends OutbreakViewerBase implements OutbreakVie
 
 		double totalWidth = 0;
 		for(int i = 0; i < columnList.size(); ++i) {
-			ColumnProperty columnProperty = columnList.get(i);
+			ColumnProperty<Object> columnProperty = (ColumnProperty<Object>) columnList.get(i);
 
 			TableColumn<Outbreak.LocalizedReport, Object> 
 			newColumn = new TableColumn<Outbreak.LocalizedReport, Object>(columnProperty.name());

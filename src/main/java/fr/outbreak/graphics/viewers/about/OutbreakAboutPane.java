@@ -1,6 +1,21 @@
+/**
+ * OutBreak API
+ * Copyright (C) 2020-?XYZ  Steve PECHBERTI <steve.pechberti@gmail.com>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package fr.outbreak.graphics.viewers.about;
-
-import java.time.LocalDate;
 
 import fr.outbreak.api.Outbreak.KpiType;
 import fr.outbreak.graphics.OutbreakViewerBase;
@@ -34,19 +49,7 @@ public class OutbreakAboutPane extends OutbreakViewerBase {
     	BorderPane.setMargin    (content, new Insets(10, 69, 33, 69));
     	BorderPane.setAlignment (content, Pos.TOP_CENTER);
 
-    	skin = new BorderPane(content, title, null, null, null);
-    	
-    	databaseProperty().addListener((_obs, _old, _new) -> {
-			if(_new == null) {
-	    		System.out.println("Database cleared...");
-				return ;
-			}
-    		System.out.print("Database updated...");
-
-    		int nbRecords = _new.getReports(KpiType.Value, LocalDate.now().minusDays(1)).size();
-
-    		System.out.println(" " + nbRecords + " records");
-    	});
+    	skin    = new BorderPane(content, title, null, null, null);
     }
 
     private Node 			createDefaultTitle() {
@@ -71,8 +74,11 @@ public class OutbreakAboutPane extends OutbreakViewerBase {
 			sb.append(getAboutPrefix());
 
 			if(_new != null) {
-				sb.append("             Database is loaded..." + "\n");
-				sb.append("             " + _new.getReports(KpiType.Variation).size() + " records found." + "\n");
+				sb.append("          Database is loaded..." + "\n");
+				sb.append("          " + _new.getReports(KpiType.Variation).size() + " records found." + "\n");
+				sb.append("            from " + _new.getPeriod().from() + " to " + _new.getPeriod().to() + "\n");
+				sb.append("            for " + _new.getIndicators(KpiType.Variation, r -> r.getCountry(), true).size() + " countries" + "\n");
+				
 			} else
 				sb.append("             Database has been cleared..." + "\n");
 

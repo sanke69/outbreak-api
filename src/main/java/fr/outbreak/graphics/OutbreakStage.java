@@ -1,6 +1,6 @@
 /**
  * OutBreak API
- * Copyright (C) 2020-?XYZ  Steve PECHBERTI <steve.pechberti@laposte.net>
+ * Copyright (C) 2020-?XYZ  Steve PECHBERTI <steve.pechberti@gmail.com>
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,8 +14,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-package fr.outbreak.graphics;
+ */package fr.outbreak.graphics;
 
 import java.util.HashMap;
 import java.util.Map;

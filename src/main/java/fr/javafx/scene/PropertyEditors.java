@@ -23,9 +23,9 @@ import java.util.Arrays;
 import java.util.EnumSet;
 
 import fr.java.time.Time;
-import fr.javafx.scene.controls.ListViewSelecterMulti;
-import fr.javafx.scene.controls.ListViewSelecterSingle;
-import fr.javafx.scene.controls.SliderWithDisplay;
+import fr.javafx.scene.control.list.ListViewSelecterMulti;
+import fr.javafx.scene.control.list.ListViewSelecterSingle;
+import fr.javafx.scene.control.slider.SliderWithDisplay;
 import fr.javafx.scene.properties.Editor;
 import fr.javafx.scene.properties.SelecterMulti;
 import fr.javafx.scene.properties.SelecterSingle;

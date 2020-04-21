@@ -15,27 +15,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.javafx.scene.controls;
+package fr.javafx.scene.control.list;
 
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.MultipleSelectionModel;
-import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.util.StringConverter;
 
-public class ListSelecterListViewMulti<T> implements ListSelecter.ListSelecterSkinMulti<T> {
+public class ListSelecterComboBoxSingle<T> implements ListSelecter.ListSelecterSkinSingle<T> {
 	private final ListSelecter<T>		skinnable;
 	private final StringConverter<T> 	stringConverter;
 
-	ListView<T>							control;
+	ComboBox<T>							control;
 
-	public ListSelecterListViewMulti(ListSelecter<T> _skinnable, StringConverter<T> _stringConverter) {
+	public ListSelecterComboBoxSingle(ListSelecter<T> _skinnable, StringConverter<T> _stringConverter) {
 		super();
 		skinnable       = _skinnable;
 		stringConverter = _stringConverter;
-		
+
 		control         = createNode();
 	}
 
@@ -55,7 +54,7 @@ public class ListSelecterListViewMulti<T> implements ListSelecter.ListSelecterSk
 	}
 
 	@Override
-	public MultipleSelectionModel<T> 	getSelectionModel() {
+	public SingleSelectionModel<T> 	getSelectionModel() {
 		return control.getSelectionModel();
 	}
 
@@ -64,12 +63,11 @@ public class ListSelecterListViewMulti<T> implements ListSelecter.ListSelecterSk
 		;
 	}
 
-	private ListView<T> 			createNode() {
+	private ComboBox<T> 			createNode() {
 		if(control != null)
 			return control;
 
-		control = new ListView<T>();
-		control.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		control = new ComboBox<T>();
 
 		class CustomListCell extends ListCell<T> {
 

@@ -18,11 +18,11 @@
 package fr.outbreak.api.database;
 
 import java.time.LocalDate;
+import java.util.function.Predicate;
 
 import fr.geodesic.referential.api.countries.Country;
 import fr.outbreak.api.Outbreak;
 import fr.outbreak.api.Outbreak.KpiType;
-import fr.outbreak.api.Outbreak.Population;
 
 public class SimpleOutbreakDataBaseDebug {
 
@@ -36,14 +36,15 @@ public class SimpleOutbreakDataBaseDebug {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("reports:\n\t- count= " + db.dailyReports.size() + "\n");
-		sb.append("period:\n\t- from= " + db.period.from() + ", to= " + db.period.to() + "\n");
-		sb.append("country:\n\t- count= " + db.getCountries().size() + "\n");
+		sb.append("period:\n\t- from= " + db.getPeriod().from() + ", to= " + db.getPeriod().to() + "\n");
+		sb.append("country:\n\t- count= " + db.getIndicators(KpiType.Variation, r -> r.getCountry(), true).size() + "\n");
 		
-		Outbreak.KpiType type    = KpiType.Value;
-		LocalDate        date    = LocalDate.now().minusDays(1);
-		Country          country = Country.FR;
+		Outbreak.KpiType 					type      = KpiType.Value;
+		LocalDate        					date      = LocalDate.now().minusDays(1);
+		Country          					country   = Country.FR;
+		Predicate<Outbreak.LocalizedReport> predicate = r -> r.getCountry().equals(country) && r.getDate().equals(date);
 		
-		sb.append(">  " + db.getReport(type, date, country));
+		sb.append(">  " + db.getReports(type, predicate).parallelStream().findFirst().orElse(null));
 
 //		for(Outbreak.LocalizedReport r : db.getReports(type, date)) {
 //			System.out.println(">> " + r.getDate() + "\t" + r.getCountry().getName() + "\t" + r.get(Population.Infected).orElse(0L));

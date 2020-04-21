@@ -1,6 +1,6 @@
 /**
- * OutBreak API
- * Copyright (C) 2020-?XYZ  Steve PECHBERTI <steve.pechberti@laposte.net>
+ * JavaFR
+ * Copyright (C) 2007-?XYZ  Steve PECHBERTI <steve.pechberti@laposte.net>
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,19 +15,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.outbreak.graphics;
+package fr.java.time;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.collections.ObservableList;
-import javafx.scene.chart.XYChart;
-import javafx.scene.chart.XYChart.Series;
-
-public interface OutbreakViewerChart<X, Y> extends OutbreakViewer {
-
-	public XYChart<X, Y> 								getXYChart();
-
-    public ObservableList<Series<X,Y>> 					getData();
-    public void 										setData(ObservableList<Series<X,Y>> value);
-    public ObjectProperty<ObservableList<Series<X,Y>>> 	dataProperty();
-
+public enum TimeUnit {
+	MILLENIUM,
+	CENTURY,
+	DECADE,
+	YEAR, 
+	MONTH, 
+	WEEK, 
+	DAY, 
+	HOUR, 
+	MINUTE, 
+	SECOND,
+	MILLISECOND,
+	NANOSECOND;
+	
+	public TimeUnit upper() {
+		int i = ordinal();
+		i = i - 1 > 0 ? i - 1 : i;
+		return values()[i];
+	}
+	public TimeUnit lower() {
+		int i = ordinal();
+		i = i + 1 < values().length ? i + 1 : i;
+		return values()[i];
+	}
+	
 }

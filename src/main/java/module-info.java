@@ -9,7 +9,11 @@ module javafr.outbreak {
 
 	exports fr.java.time;
 
-	exports fr.javafx.scene.controls;
+	exports fr.javafx.scene.control.list;
+	exports fr.javafx.scene.control.slider;
+	exports fr.javafx.scene.control.chart;
+	exports fr.javafx.scene.control.chart.axis;
+	exports fr.javafx.scene.control.chart.customs;
 	exports fr.javafx.scene.layouts;
 	exports fr.javafx.scene.properties;
 	exports fr.javafx.scene;
@@ -29,6 +33,7 @@ module javafr.outbreak {
 
 	exports fr.outbreak.graphics.viewers.about;
 	exports fr.outbreak.graphics.viewers.table;
+	exports fr.outbreak.graphics.viewers.chart;
 
 	// For debug only... Eclipse issues with java modules and maven
 	exports fr.run.outbreak;

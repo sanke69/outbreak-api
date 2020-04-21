@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.javafx.scene.controls;
+package fr.javafx.scene.control.list;
 
 import javafx.collections.ObservableList;
 import javafx.scene.Node;

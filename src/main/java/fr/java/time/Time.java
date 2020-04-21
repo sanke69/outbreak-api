@@ -91,6 +91,23 @@ public interface Time {
 		return ldt.toInstant(Time.DEFAULT_ZONEOFFSET);
 	}
 
+	public static Instant 		add(Instant _instant, long _value, TimeUnit _unit) {
+		return switch(_unit) {
+		case MILLENIUM   -> addYears	(_instant, 1000 * _value);
+		case CENTURY     -> addYears	(_instant, 100 * _value);
+		case DECADE      -> addYears	(_instant, 10 * _value);
+		case YEAR        -> addYears	(_instant, _value);
+		case MONTH       -> addMonths	(_instant, _value);
+		case WEEK        -> addDays		(_instant, 7 * _value);
+		case DAY         -> addDays		(_instant, _value);
+		case HOUR        -> addHours	(_instant, _value);
+		case MINUTE      -> addMinutes	(_instant, _value);
+		case SECOND      -> addSeconds	(_instant, _value);
+		case MILLISECOND -> addMillis	(_instant, _value);
+		case NANOSECOND  -> addNanos	(_instant, _value);		
+		};
+	}
+
 	public static Instant 		add(Instant _instant, int _years, int _months, int _days) {
 		LocalDateTime ldt = LocalDateTime.ofInstant(_instant, Time.DEFAULT_ZONEID);
 		ldt = ldt.plusYears  (_years);
@@ -237,9 +254,9 @@ public interface Time {
 		return of(nextDayOfMonth);
 	}
 	public static Instant 		nextDayOfMonth(Instant _instant, int _dayOfMonth, LocalTime _hour) {
-		LocalDateTime instant_datetime = LocalDateTime.ofInstant(_instant, Time.DEFAULT_ZONEID);
+//		LocalDateTime instant_datetime = LocalDateTime.ofInstant(_instant, Time.DEFAULT_ZONEID);
 		LocalDate     instant_date     = date(_instant);
-		LocalTime     instant_time     = time(_instant);
+//		LocalTime     instant_time     = time(_instant);
 //		LocalTime     instant_time     = _instant.atZone(DEFAULT_ZONEID);
 		
 		boolean nextMonth = instant_date.getDayOfMonth() < _dayOfMonth ? false : true;

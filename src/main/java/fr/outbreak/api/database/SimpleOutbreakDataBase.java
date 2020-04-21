@@ -28,6 +28,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import fr.geodesic.referential.api.countries.Country;
@@ -41,22 +42,11 @@ import fr.outbreak.api.records.OutbreakRecord;
 public abstract class SimpleOutbreakDataBase implements OutbreakDataBase {
 	final Collection<Outbreak.LocalizedReport>  dailyReports;
 	final Collection<Outbreak.LocalizedReport>  totalReports;
-	final OutbreakPeriod						period;
 
 	public <OLR extends Outbreak.LocalizedReport>
 	SimpleOutbreakDataBase(Collection<OLR> _reports) {
 		super();
 
-		LocalDate firstDate = _reports.stream()
-									      .min(Comparator.comparing( Outbreak.LocalizedReport::getDate ))
-									      .map( Outbreak.LocalizedReport::getDate )
-									      .orElseThrow(NoSuchElementException::new);
-		LocalDate lastDate  = _reports.stream()
-									      .max(Comparator.comparing( Outbreak.LocalizedReport::getDate ))
-									      .map( Outbreak.LocalizedReport::getDate )
-									      .orElseThrow(NoSuchElementException::new);
-
-		period       = new OutbreakPeriod(firstDate, lastDate);
 		dailyReports = new ArrayList<Outbreak.LocalizedReport>(_reports);
 		totalReports = new ArrayList<Outbreak.LocalizedReport>();
 	
@@ -72,192 +62,130 @@ public abstract class SimpleOutbreakDataBase implements OutbreakDataBase {
 										AtomicLong nbRecovered   = new AtomicLong(0L);
 
 										c_reports.forEach(r -> {
-											OutbreakRecord totalCountryByDate = new OutbreakRecord(
-																					KpiType.Value,
-																					r.getDate(), r.getCountry(), 
-																					nbSusceptible . addAndGet( r.get(Population.Susceptible) . orElse(0L) ), 
-																					nbInfected    . addAndGet( r.get(Population.Infected)    . orElse(0L) ), 
-																					nbDead        . addAndGet( r.get(Population.Dead)        . orElse(0L) ), 
-																					nbRecovered   . addAndGet( r.get(Population.Recovered)   . orElse(0L) )  );
-											totalReports.add( totalCountryByDate );
+											totalReports.add( new OutbreakRecord( KpiType.Value,
+																				  r.getDate(), r.getCountry(), 
+																				  nbSusceptible . addAndGet( r.get(Population.Susceptible) . orElse(0L) ), 
+																				  nbInfected    . addAndGet( r.get(Population.Infected)    . orElse(0L) ), 
+																				  nbDead        . addAndGet( r.get(Population.Dead)        . orElse(0L) ), 
+																				  nbRecovered   . addAndGet( r.get(Population.Recovered)   . orElse(0L) )  ) );
 										});
 		});
-		
-		
-/*
-//		period             = OutbreakReportProcessing.getPeriod( dailyReports );
-		variation          = new TreeSet<>(Outbreak.LocalizedReport.comparatorByDate()) {
-			private static final long serialVersionUID = 617128529407194447L;
-			{
-			Map<LocalDate, List<Outbreak.LocalizedReport>> sortedByDate = dailyReports.stream().collect(Collectors.groupingBy(Outbreak.LocalizedReport::getDate));
-			for(LocalDate key:sortedByDate.keySet()){
-			   Long nbSusceptible = sortedByDate.get(key).stream().map(r -> r.get(Population.Susceptible)) . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
-			   Long nbInfected    = sortedByDate.get(key).stream().map(r -> r.get(Population.Infected))    . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
-			   Long nbDead        = sortedByDate.get(key).stream().map(r -> r.get(Population.Dead))        . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
-			   Long nbRecovered   = sortedByDate.get(key).stream().map(r -> r.get(Population.Recovered))   . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
 
-			   add(new OutbreakRecordDaily(key,Country.GROUP, nbSusceptible, nbInfected, nbDead, nbRecovered));
-			}
-		}};
-		situation          = OutbreakReports.Localized.computeCumulationByDate( dailyReports );
-
-		countries          = OutbreakReports.Localized.getCountries( dailyReports );
-		variationByCountry = OutbreakReports.Localized.groupByCountry( dailyReports );
-		situationByCountry = new HashMap<Country, SortedSet<Outbreak.LocalizedReport>>();
-
-		for(Country c : countries) {
-			situationByCountry . put(c, OutbreakReports.Localized.computeCumulation( variationByCountry.get(c) ));
-		}
-*/
 		new SimpleOutbreakDataBaseDebug(this);
 	}
 
 	@Override
 	public OutbreakPeriod 							getPeriod() {
-		return period;
-	}
-
-	@Override
-	public SortedSet<LocalizedReport> 				getGlobalReports(KpiType _type) {
-		
-		if(_type == KpiType.Variation)
-			return new TreeSet<>(Outbreak.LocalizedReport.comparatorByDate()) {
-				private static final long serialVersionUID = 1L;
-				{
-				Map<LocalDate, List<Outbreak.LocalizedReport>> sortedByDate = dailyReports.stream().collect(Collectors.groupingBy(Outbreak.LocalizedReport::getDate));
-				for(LocalDate date : sortedByDate.keySet()){
-				   Long nbSusceptible = sortedByDate.get(date).stream().map(r -> r.get(Population.Susceptible)) . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
-				   Long nbInfected    = sortedByDate.get(date).stream().map(r -> r.get(Population.Infected))    . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
-				   Long nbDead        = sortedByDate.get(date).stream().map(r -> r.get(Population.Dead))        . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
-				   Long nbRecovered   = sortedByDate.get(date).stream().map(r -> r.get(Population.Recovered))   . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
-	
-				   add(new OutbreakRecord(_type, date, Country.GROUP, nbSusceptible, nbInfected, nbDead, nbRecovered));
-				}
-			}};
-
-		if(_type == KpiType.Value)
-			return new TreeSet<>(Outbreak.LocalizedReport.comparatorByDate()) {
-				private static final long serialVersionUID = 1L;
-				{
-				Map<LocalDate, List<Outbreak.LocalizedReport>> sortedByDate = totalReports.stream().collect(Collectors.groupingBy(Outbreak.LocalizedReport::getDate));
-				for(LocalDate key:sortedByDate.keySet()){
-				   Long nbSusceptible = sortedByDate.get(key).stream().map(r -> r.get(Population.Susceptible)) . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
-				   Long nbInfected    = sortedByDate.get(key).stream().map(r -> r.get(Population.Infected))    . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
-				   Long nbDead        = sortedByDate.get(key).stream().map(r -> r.get(Population.Dead))        . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
-				   Long nbRecovered   = sortedByDate.get(key).stream().map(r -> r.get(Population.Recovered))   . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
-	
-				   add(new OutbreakRecord(_type, key,Country.GROUP, nbSusceptible, nbInfected, nbDead, nbRecovered));
-				}
-			}};
-
-		return switch(_type) {
-		case Variation -> null; //variation.stream().filter(r -> r.getDate().equals(_date)).findFirst().orElse(null);
-		case Value     -> null; //situation.stream().filter(r -> r.getDate().equals(_date)).findFirst().orElse(null);
-		};
-	}
-	public Outbreak.LocalizedReport 				getGlobalReport  (KpiType _type, LocalDate _date) {
-		return switch(_type) {
-		case Variation -> null; //variation.stream().filter(r -> r.getDate().equals(_date)).findFirst().orElse(null);
-		case Value     -> null; //situation.stream().filter(r -> r.getDate().equals(_date)).findFirst().orElse(null);
-		};
-	}
-	
-	
-	
-	record KpiEvolution(LocalDate date, long value) {}
-	public List<KpiEvolution> 						getCurve(KpiType _type, Population _kpi) {
-		return	 totalReports	 .stream()
-								 .collect(Collectors.groupingBy(Outbreak.LocalizedReport::getDate))
-								 .entrySet().stream()
-									        .sorted(Map.Entry.<LocalDate, List<Outbreak.LocalizedReport>>comparingByKey().reversed())
-									        .peek(e -> {})
-									        .map(e -> new KpiEvolution(e.getKey(), e.getValue().stream().mapToLong(s -> s.get(Population.Dead).orElse(0L)).sum()))
-									        .collect(Collectors.toList());
-	}
-	
-	
-	
-	
-	@Override
-	public Collection<Outbreak.LocalizedReport>		getReports (KpiType _type) {
-		return switch(_type) {
-		case Variation -> dailyReports;
-		case Value     -> totalReports;
-		};
-	}
-//	@Override
-//	public Outbreak.LocalizedReport 				getReport  (KpiType _type, LocalDate _date) {
-//		return switch(_type) {
-//		case Variation -> dailyReports.stream().filter(r -> r.getDate().equals(_date)).findFirst().orElse(null);
-//		case Value     -> totalReports.stream().filter(r -> r.getDate().equals(_date)).findFirst().orElse(null);
-//		};
-//	}
-
-	/**
-	 * Get all country reports for a specified date
-	 */
-	@Override
-	public SortedSet<Outbreak.LocalizedReport> 		getReports (KpiType _type, LocalDate _date) {
-		return switch(_type) {
-		case Variation -> dailyReports.stream()
-									  .filter(r -> r.getDate().equals(_date))
-									  .collect(Collectors.toCollection(() -> new TreeSet<>(Outbreak.LocalizedReport.comparatorByCountry)));
-		case Value     -> totalReports.stream()
-									  .filter(r -> r.getDate().equals(_date))
-									  .collect(Collectors.toCollection(() -> new TreeSet<>(Outbreak.LocalizedReport.comparatorByCountry)));
-		};
-	}
-//	@Override
-	public SortedSet<Outbreak.LocalizedReport> 		getReports (KpiType _type, LocalDate _date, Comparator<Outbreak.LocalizedReport> _comparator) {
-		return switch(_type) {
-		case Variation -> dailyReports.stream()
-									  .filter(r -> r.getDate().equals(_date))
-									  .collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)));
-		case Value     -> totalReports.stream()
-									  .filter(r -> r.getDate().equals(_date))
-									  .collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)));
-		};
-	}
-	/**
-	 * Get all country reports for a specified date
-	 */
-	@Override
-	public SortedSet<Outbreak.LocalizedReport> 		getReports (KpiType _type, Country _country) {
-		return switch(_type) {
-		case Variation -> dailyReports.stream()
-									  .filter(r -> r.getCountry().equals(_country))
-									  .collect(Collectors.toCollection(() -> new TreeSet<>(Outbreak.LocalizedReport.comparatorByDate)));
-		case Value     -> totalReports.stream()
-									  .filter(r -> r.getCountry().equals(_country))
-									  .collect(Collectors.toCollection(() -> new TreeSet<>(Outbreak.LocalizedReport.comparatorByDate)));
-		};
-	}
-	@Override
-	public Outbreak.LocalizedReport 				getReport  (KpiType _type, LocalDate _date, Country _country) {
-		return getReports(_type, _country).stream().filter(r -> r.getDate().equals(_date)).findFirst().orElse(null);
-	}
-
-	
-	
-	public SortedSet<Country> 	getCountries() {
-		return dailyReports .stream()
-							.map(Outbreak.LocalizedReport::getCountry)
-							.distinct()
-							.collect(Collectors.toCollection(() -> new TreeSet<Country>(Country.nameComparator)));
-	}
-	public OutbreakPeriod 		getPeriod(Country _country) {
 		LocalDate firstDate = dailyReports.stream()
-										  .filter(r -> r.getCountry() == _country)
 									      .min(Comparator.comparing( Outbreak.LocalizedReport::getDate ))
 									      .map( Outbreak.LocalizedReport::getDate )
 									      .orElseThrow(NoSuchElementException::new);
 		LocalDate lastDate  = dailyReports.stream()
-				  						  .filter(r -> r.getCountry() == _country)
 									      .max(Comparator.comparing( Outbreak.LocalizedReport::getDate ))
 									      .map( Outbreak.LocalizedReport::getDate )
 									      .orElseThrow(NoSuchElementException::new);
 		
 		return new OutbreakPeriod(firstDate, lastDate);
+	}
+	@Override
+	public <T> Collection<T> 						getIndicators		(KpiType _type, Function<Outbreak.LocalizedReport, T> _mapper, boolean _distinct) {
+		return switch(_type) {
+		case Variation -> _distinct ?
+								dailyReports.stream().map(_mapper).distinct().collect(Collectors.toList())
+								:
+								dailyReports.stream().map(_mapper).collect(Collectors.toList());
+		case Value     -> _distinct ?
+								totalReports.stream().map(_mapper).distinct().collect(Collectors.toList())
+								:
+								totalReports.stream().map(_mapper).collect(Collectors.toList());
+		};
+	}
+	@Override
+	public <T> SortedSet<T> 						getIndicators		(KpiType _type, Function<LocalizedReport, T> _mapper, Comparator<T> _comparator) {
+		final boolean _distinct = true;
+		return switch(_type) {
+		case Variation -> _distinct ?
+								dailyReports.stream().map(_mapper).distinct().collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)))
+								:
+								dailyReports.stream().map(_mapper).collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)));
+		case Value     -> _distinct ?
+								totalReports.stream().map(_mapper).distinct().collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)))
+								:
+								totalReports.stream().map(_mapper).collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)));
+		};
+	}
+
+	@Override
+	public Collection<Outbreak.LocalizedReport>		getReports 			(KpiType _type) {
+		return switch(_type) {
+		case Variation -> dailyReports;
+		case Value     -> totalReports;
+		};
+	}
+	@Override
+	public Collection<Outbreak.LocalizedReport> 	getReports 			(KpiType _type, Predicate<Outbreak.LocalizedReport> _filter) {
+		return switch(_type) {
+		case Variation -> dailyReports.stream().filter(_filter).collect(Collectors.toList());
+		case Value     -> totalReports.stream().filter(_filter).collect(Collectors.toList());
+		};
+	}
+	@Override
+	public SortedSet<LocalizedReport> 				getReports			(KpiType _type, Comparator<LocalizedReport> _comparator) {
+		return switch(_type) {
+		case Variation -> dailyReports.stream().collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)));
+		case Value     -> totalReports.stream().collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)));
+		};
+	}
+	@Override
+	public SortedSet<Outbreak.LocalizedReport> 		getReports 			(KpiType _type, Predicate<Outbreak.LocalizedReport> _filter, Comparator<Outbreak.LocalizedReport> _comparator) {
+		return switch(_type) {
+		case Variation -> dailyReports.stream().filter(_filter).collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)));
+		case Value     -> totalReports.stream().filter(_filter).collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)));
+		};
+	}
+
+	@Override
+	public Collection<LocalizedReport> 				getGlobalReports	(KpiType _type) {
+		return switch(_type) {
+		case Variation -> new TreeSet<>(Outbreak.LocalizedReport.comparatorByDate()) {
+								private static final long serialVersionUID = 1L;
+								{
+								Map<LocalDate, List<Outbreak.LocalizedReport>> sortedByDate = dailyReports.stream().collect(Collectors.groupingBy(Outbreak.LocalizedReport::getDate));
+								for(LocalDate date : sortedByDate.keySet()){
+								   Long nbSusceptible = sortedByDate.get(date).stream().map(r -> r.get(Population.Susceptible)) . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
+								   Long nbInfected    = sortedByDate.get(date).stream().map(r -> r.get(Population.Infected))    . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
+								   Long nbDead        = sortedByDate.get(date).stream().map(r -> r.get(Population.Dead))        . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
+								   Long nbRecovered   = sortedByDate.get(date).stream().map(r -> r.get(Population.Recovered))   . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
+					
+								   add(new OutbreakRecord(_type, date, Country.GROUP, nbSusceptible, nbInfected, nbDead, nbRecovered));
+								}
+							}};
+		case Value     -> new TreeSet<>(Outbreak.LocalizedReport.comparatorByDate()) {
+								private static final long serialVersionUID = 1L;
+								{
+								Map<LocalDate, List<Outbreak.LocalizedReport>> sortedByDate = totalReports.stream().collect(Collectors.groupingBy(Outbreak.LocalizedReport::getDate));
+								for(LocalDate key:sortedByDate.keySet()){
+								   Long nbSusceptible = sortedByDate.get(key).stream().map(r -> r.get(Population.Susceptible)) . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
+								   Long nbInfected    = sortedByDate.get(key).stream().map(r -> r.get(Population.Infected))    . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
+								   Long nbDead        = sortedByDate.get(key).stream().map(r -> r.get(Population.Dead))        . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
+								   Long nbRecovered   = sortedByDate.get(key).stream().map(r -> r.get(Population.Recovered))   . map(o -> o.orElse(0L)) . reduce(0L, (x, y) -> x + y);
+					
+								   add(new OutbreakRecord(_type, key,Country.GROUP, nbSusceptible, nbInfected, nbDead, nbRecovered));
+								}
+							}};
+		};
+	}
+	@Override
+	public Collection<LocalizedReport> 				getGlobalReports	(KpiType _type, Predicate<LocalizedReport> _filter) {
+		return getGlobalReports(_type).stream().filter(_filter).collect(Collectors.toList());
+	}
+	@Override
+	public SortedSet<LocalizedReport> 				getGlobalReports	(KpiType _type, Comparator<LocalizedReport> _comparator) {
+		return getGlobalReports(_type).stream().collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)));
+	}
+	@Override
+	public SortedSet<LocalizedReport> 				getGlobalReports	(KpiType _type, Predicate<LocalizedReport> _filter, Comparator<LocalizedReport> _comparator) {
+		return getGlobalReports(_type).stream().filter(_filter).collect(Collectors.toCollection(() -> new TreeSet<>(_comparator)));
 	}
 
 }
