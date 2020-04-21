@@ -52,7 +52,7 @@ public abstract class OutbreakOptionsTest {
 			options.addEntry(PropertyEditors.newFloatingEditor(-1d, 1d, 0.05d, 0d).getNode());
 			options.addEntry(PropertyEditors.newDayEditor().getNode());
 			options.addEntry(PropertyEditors.newLocalDateEditor(LocalDate.now().minusDays(60), LocalDate.now().plusDays(60)).getNode());
-			options.addEntry("property-0", PropertyEditors.newSingleSelecter(Country.class).getNode());
+			options.addEntry("property-0", PropertyEditors.newSingleSelecter(Country.values()).getNode());
 			options.addEntry("property-1", PropertyEditors.newDayEditor().getNode());
 			options.addEntry(new TextArea("property-2"), PropertyEditors.newDayEditor().getNode());
 
