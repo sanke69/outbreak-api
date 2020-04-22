@@ -109,7 +109,7 @@ public class SliderWithDisplay<T> extends Control {
 
 		};
 
-		return new SliderWithDisplay<Integer>(_min, _max, 1, 0, null, null, toTicks, toDisplay);
+		return new SliderWithDisplay<Integer>(_min, _max, 1, 0,  i -> (double) i, d -> d.intValue(), toTicks, toDisplay);
     }
     public static <E extends Enum<E>> SliderWithDisplay<E> 	forEnum(EnumSet<E> _enum) {
     	List<E> indexes = new ArrayList<E>(_enum);
@@ -241,7 +241,7 @@ public class SliderWithDisplay<T> extends Control {
 
 	    						};
     	
-    	return new SliderWithDisplay<Integer>(_min, _max, _step, _default, null, null, toTicks, toDisplay);
+    	return new SliderWithDisplay<Integer>(_min, _max, _step, _default, i -> (double) i, d -> d.intValue(), toTicks, toDisplay);
     }
 
     HBox                    hbox;
@@ -277,9 +277,11 @@ public class SliderWithDisplay<T> extends Control {
 			double Q  = (int) ((v - _min) / _step);
 			double R  = v % _step; // Math.IEEEremainder(v, _step);
 
-			slider.setValue( _min + (R < .5 * _step ? Q*_step : (Q+1)*_step) );
+			slider.setValue( (double) ( _min + (R < .5 * _step ? Q*_step : (Q+1)*_step) ) );
 		};
-		slider.setOnMouseReleased (me -> { if(!me.isPrimaryButtonDown()) { validateValue.accept(slider.getValue()); } });
+		slider.setOnMouseReleased (me -> { if(!me.isPrimaryButtonDown()) { 
+			validateValue.accept(slider.getValue()); 
+		} });
 
         slider.valueProperty().addListener((_obs, _old, _new) -> display.setText(_toDisplay.toString(_new.doubleValue())));
 

@@ -27,6 +27,7 @@ import javafx.scene.Node;
 import javafx.util.StringConverter;
 
 import fr.javafx.scene.PropertyEditors;
+import fr.javafx.scene.PropertyListControl;
 import fr.javafx.scene.properties.SelecterMulti;
 import fr.javafx.scene.properties.SelecterSingle;
 
@@ -43,7 +44,6 @@ public class OutbreakChartPaneOptionsBasics extends OutbreakViewerOptions<Outbre
 
 	public OutbreakChartPaneOptionsBasics() {
 		super();
-//		curveSelecter   = PropertyEditors.newPopulationSelecterMulti();
 		curveSelecter   = PropertyEditors.newMultiSelecter(EnumSet.of(Population.Infected, Population.Dead));
 		curveSelecter.setMaxDisplayedItems(2);
 
@@ -52,8 +52,11 @@ public class OutbreakChartPaneOptionsBasics extends OutbreakViewerOptions<Outbre
 			@Override public Country fromString(String string) { return null; }
 		});
 
-		addEntry(curveSelecter    . getNode());
-		addEntry(countrySelecter  . getNode());
+		PropertyListControl curvePane   = addSubPane("Curves");
+		PropertyListControl countryPane = addSubPane("Countries");
+
+		curvePane   . addEntry(curveSelecter   . getNode());
+		countryPane . addEntry(countrySelecter . getNode());
 	}
 
 	public void                                       	initialize(OutbreakChartPane _charts) {

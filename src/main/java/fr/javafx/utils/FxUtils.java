@@ -4,8 +4,22 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 
 public class FxUtils {
+	
+	public static String rgb(Color _c) {
+		if(_c == null)
+			return "lightgray";
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("rgb(");
+		sb.append((int) (_c.getRed() * 255d) + ", ");
+		sb.append((int) (_c.getGreen() * 255d) + ", ");
+		sb.append((int) (_c.getBlue() * 255d) + ")");
+		return sb.toString();
+	}
+
 	/**
 	 * Find the X coordinate in ancestor's coordinate system that corresponds to the X=0 axis in
 	 * descendant's coordinate system.

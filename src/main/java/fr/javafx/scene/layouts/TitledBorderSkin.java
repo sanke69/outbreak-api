@@ -2,19 +2,15 @@ package fr.javafx.scene.layouts;
 
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Skin;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
+
+import fr.javafx.utils.FxUtils;
 
 public class TitledBorderSkin extends Region implements Skin<TitledBorder> {
 	private final TitledBorder skinnable;
@@ -40,32 +36,37 @@ public class TitledBorderSkin extends Region implements Skin<TitledBorder> {
 
 	}
 
-	private ObjectProperty<Insets> 	borderMargins;
-	DoubleProperty				    leftMarginProperty   = new SimpleDoubleProperty();
-	DoubleProperty				rightMarginProperty  = new SimpleDoubleProperty();
-	DoubleProperty				topMarginProperty    = new SimpleDoubleProperty();
-	DoubleProperty				bottomMarginProperty = new SimpleDoubleProperty();
-/*
-	DoubleBinding 					leftMarginProperty   = new DoubleBinding()       { @Override protected double computeValue() { return borderMargins.get().getLeft(); } };
-	DoubleBinding 					rightMarginProperty  = new DoubleBinding()       { @Override protected double computeValue() { return borderMargins.get().getRight(); } };
-	DoubleBinding 					topMarginProperty    = new DoubleBinding()       { @Override protected double computeValue() { return borderMargins.get().getTop(); } };
-	DoubleBinding 					bottomMarginProperty = new DoubleBinding()       { @Override protected double computeValue() { return borderMargins.get().getBottom(); } };
-*/
-	private Label     				titleLabel;
-	private BorderPane				contentPane;
-	private Rectangle 				contentClip;
+	private final DoubleProperty			leftMarginProperty;
+	private final DoubleProperty			rightMarginProperty;
+	private final DoubleProperty			topMarginProperty;
+	private final DoubleProperty			bottomMarginProperty;
+
+	private final Label     				titleLabel;
+	private final Rectangle     			contentClip;
 
 	public TitledBorderSkin(TitledBorder _skinnable) {
 		super();
 		skinnable = _skinnable;
 
-		contentClip   = new ResizableRectangle();
-		borderMargins = new SimpleObjectProperty<Insets>( new Insets(7, 3, 3, 3) );
-		borderMargins . addListener(this::bordersUpdate);
-		
-		getChildren().addAll(getTitle(), getContentPane());
-		getContentPane().setStyle("-fx-background-color: red;");
-		updateBorders();
+		leftMarginProperty   = new SimpleDoubleProperty( 3); leftMarginProperty   . addListener(this::updateStyle);
+		rightMarginProperty  = new SimpleDoubleProperty( 3); rightMarginProperty  . addListener(this::updateStyle);
+		topMarginProperty    = new SimpleDoubleProperty( 6); topMarginProperty    . addListener(this::updateStyle);
+		bottomMarginProperty = new SimpleDoubleProperty( 3); bottomMarginProperty . addListener(this::updateStyle);
+		contentClip          = new Rectangle();
+
+		getChildren().addAll(titleLabel = createTitle(), skinnable.getContent());
+		skinnable.getContent().setClip(contentClip);
+
+		skinnable.contentProperty().addListener((_obs, _old, _new) -> {
+			if(_old != null)
+				getChildren().remove(_old);
+			getChildren().add(_new);
+
+			_new.setClip(contentClip);
+		});
+
+		registerListeners();
+		updateStyle(null, 0, 0);
 	}
 
 	@Override
@@ -83,127 +84,53 @@ public class TitledBorderSkin extends Region implements Skin<TitledBorder> {
 		;
 	}
 
-	private Label getTitle() {
-		if(titleLabel != null)
-			return titleLabel;
-
-		String cssTitle = 
-				"-fx-background-color: white;\n" +
-				"-fx-translate-y: 0;\n";
-
-		titleLabel  = new Label();
-		titleLabel.setStyle(cssTitle);
-		titleLabel.textProperty().bind(getSkinnable().titleProperty());
-		titleLabel.setLayoutX(27);
-
-//		StackPane.setAlignment(titleLabel, Pos.TOP_CENTER);
-		StackPane.setAlignment(titleLabel, Pos.TOP_LEFT);
-		StackPane.setMargin(titleLabel, new Insets(0, 0, 0, 15));
-		
-		return titleLabel;
-	}
-	private BorderPane getContentPane() {
-		if(contentPane != null)
-			return contentPane;
-
-		contentPane = new BorderPane();
-
-		
-		
-		
-		
-//		ObjectBinding<Node> clipProperty         = new ObjectBinding<Node>() { @Override protected Node   computeValue() { return contentClip; } };
-		DoubleBinding 		leftMarginProperty   = new DoubleBinding()       { @Override protected double computeValue() { return borderMargins.get().getLeft(); } };
-		DoubleBinding 		rightMarginProperty  = new DoubleBinding()       { @Override protected double computeValue() { return borderMargins.get().getRight(); } };
-		DoubleBinding 		topMarginProperty    = new DoubleBinding()       { @Override protected double computeValue() { return borderMargins.get().getTop(); } };
-		DoubleBinding 		bottomMarginProperty = new DoubleBinding()       { @Override protected double computeValue() { return borderMargins.get().getBottom(); } };
-		DoubleBinding 		widthProperty        = widthProperty()  . subtract( leftMarginProperty . add( rightMarginProperty  ) );
-		DoubleBinding 		heightProperty       = heightProperty() . subtract( topMarginProperty  . add( bottomMarginProperty ) );
-
-		getContentPane() . layoutXProperty()      . bind(leftMarginProperty);
-		getContentPane() . layoutYProperty()      . bind(topMarginProperty);
-
-		getContentPane() . minWidthProperty()    . bind(widthProperty);
-		getContentPane() . prefWidthProperty()   . bind(widthProperty);
-		getContentPane() . maxWidthProperty()    . bind(widthProperty);
-
-		getContentPane() . minHeightProperty()   . bind(heightProperty);
-		getContentPane() . prefHeightProperty()  . bind(heightProperty);
-		getContentPane() . maxHeightProperty()   . bind(heightProperty);
-		
-		
-		
-		
-		
-		
-		
-	/*	
-		
-		contentClip      . xProperty()       . set(30);
-		contentClip      . yProperty()       . set(50);
-		contentClip      . widthProperty()       . bind(widthProperty);
-		contentClip      . heightProperty()      . bind(heightProperty);
-		
-		getContentPane() . centerProperty()      . bind(getSkinnable().contentProperty());
-		getContentPane() . clipProperty()        . bind(clipProperty);
-		
-//		getContentPane() . setLayoutX( borderMargins.get().getLeft() );
-//		getContentPane() . setLayoutY( borderMargins.get().getTop() );
-/*
-		getContentPane() . layoutXProperty()     . bind(leftMarginProperty);
-		getContentPane() . layoutYProperty()     . bind(topMarginProperty);
-/*
-		getContentPane() . minWidthProperty()    . bind(widthProperty);
-		getContentPane() . prefWidthProperty()   . bind(widthProperty);
-		getContentPane() . maxWidthProperty()    . bind(widthProperty);
-
-		getContentPane() . minHeightProperty()   . bind(heightProperty);
-		getContentPane() . prefHeightProperty()  . bind(heightProperty);
-		getContentPane() . maxHeightProperty()   . bind(heightProperty);
-*/
-		return contentPane;
-	}
-	
-	private void updateBorders() {
-		Insets margins = borderMargins.get();
-		String cssThis = 
-				"-fx-border-color: black;\n" +
-				"-fx-border-insets: " + margins.getTop() + " " + margins.getRight() + " " + margins.getBottom() + " " + margins.getLeft() + ";\n" +
-                "-fx-border-width: 3;\n";
-		setStyle(cssThis);
-
-	}
-
 	// 7, 15, 22(RTT), 28, 29
 
-//	private void setupBindings() {
-//		getContentPane().clipProperty().bind(new ObjectBinding<Node>() { @Override protected Node computeValue() { return contentClip; }});
-//	}
-	private void bordersUpdate(ObservableValue<? extends Insets> _obs, Insets _old, Insets _new) {
-		if(_new == null)
-			return ;
+	private Label createTitle() {
+		Label titleLabel  = new Label();
+		titleLabel.textProperty().bind(getSkinnable().titleProperty());
+		titleLabel.setStyle("-fx-background-color: "+ FxUtils.rgb(getSkinnable().getColor()) +";");
 
-		Insets border = _new;
+		return titleLabel;
+	}
+
+
+	private void registerListeners() {
+		DoubleBinding 		widthProperty      = new DoubleBinding() {
+			{ bind( widthProperty(), leftMarginProperty, rightMarginProperty) ; }
+
+			@Override protected double computeValue() {
+				return widthProperty().get() - 2 * leftMarginProperty.get() - 2 * rightMarginProperty.get();
+			}};
+		DoubleBinding 		heightProperty      = new DoubleBinding() {
+			{ bind( heightProperty(), topMarginProperty, bottomMarginProperty) ; }
+
+			@Override protected double computeValue() {
+				return heightProperty().get() - 2 * topMarginProperty.get() - 2 * bottomMarginProperty.get() - 2;
+			}};
+
+		contentClip . widthProperty()  . bind(widthProperty);
+		contentClip . heightProperty() . bind(heightProperty);
+
+		titleLabel.setLayoutX(27);
+	
+		getSkinnable().getContent() . layoutXProperty()     . bind(leftMarginProperty.multiply(2));
+		getSkinnable().getContent() . layoutYProperty()     . bind(topMarginProperty.multiply(2).add(2));
+
+	}
+	private void updateStyle(ObservableValue<? extends Number> _obs, Number _old, Number _new) {
+		double left   = leftMarginProperty.get();
+		double right  = rightMarginProperty.get();
+		double top    = topMarginProperty.get();
+		double bottom = bottomMarginProperty.get();
 
 		// Update the Border Rendering
 		String cssThis = 
+				"-fx-background-color: "+ FxUtils.rgb(getSkinnable().getColor()) +";\n" +
 				"-fx-border-color: black;\n" +
-				"-fx-border-insets: " + border.getTop() + " " + border.getRight() + " " + border.getBottom() + " " + border.getLeft() + ";\n" +
+				"-fx-border-insets: " + top + " " + right + " " + bottom + " " + left + ";\n" +
                 "-fx-border-width: 3;\n";
 		setStyle(cssThis);
-
-		getContentPane() . setLayoutX( borderMargins.get().getLeft() );
-//		getContentPane() . setLayoutY( borderMargins.get().getTop() );
-		/*
-		getContentPane().setLayoutX( border.getLeft() );
-		getContentPane().setLayoutY( border.getTop() );
-
-		contentClip.setWidth  ( getWidth()  - border.getLeft() + border.getRight());
-		contentClip.setHeight ( getHeight() - border.getTop()  + border.getBottom());
-		*/
 	}
 
-	
-	
-	
 }

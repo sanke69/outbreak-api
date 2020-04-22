@@ -22,12 +22,10 @@ import java.util.Collection;
 import java.util.function.Function;
 
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ObservableList;
 import javafx.scene.layout.Region;
 import javafx.util.StringConverter;
 
 import fr.javafx.scene.control.list.ListSelecter;
-import fr.javafx.scene.control.list.ListSelecter.Visual;
 import fr.javafx.scene.properties.SelecterSingle;
 
 public class DefaultSelecterSingle<T> extends ListSelecter<T> implements SelecterSingle<T> {

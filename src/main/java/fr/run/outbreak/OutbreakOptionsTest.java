@@ -74,22 +74,36 @@ public abstract class OutbreakOptionsTest {
 
 			OutbreakViewerOptions<?> options = new OutbreakViewerOptions<OutbreakViewer>() { public void initialize(OutbreakViewer _null) {} };
 
-			PropertyListControl s1 = options.addSubPane("test");
+			PropertyListControl s1 = options.addSubPane("Editors");
 			s1.addEntry(editInt.getNode());
 			s1.addEntry(editDbl.getNode());
 
-			options.addEntry(editDate.getNode());
-			options.addEntry(editDay.getNode());
+			PropertyListControl s11 = s1.addSubPane("Specials");
+			s11.addEntry(editDate.getNode());
+			s11.addEntry(editDay.getNode());
 
-			options.addEntry(singleInt.getNode());
-			options.addEntry(singleDbl.getNode());
-			options.addEntry(singleCtr.getNode());
+			PropertyListControl s2 = options.addSubPane("Selectors");
+			PropertyListControl s21 = s2.addSubPane("Singles");
+			s21.addEntry(singleInt.getNode());
+			s21.addEntry(singleDbl.getNode());
+			s21.addEntry(singleCtr.getNode());
 
-			options.addEntry(multiInt.getNode());
-			options.addEntry(multiDbl.getNode());
-			options.addEntry(multiCtr.getNode());
+			PropertyListControl s22 = s2.addSubPane("Multi");
+			s22.addEntry(multiInt.getNode());
+			s22.addEntry(multiDbl.getNode());
+			s22.addEntry(multiCtr.getNode());
 
 			options.addEntry(new Label("another"), new Button("Press me"));
+
+
+			editInt   . valueProperty()    . addListener((_obs, _old, _new) -> { System.out.println(_new); });
+			editDbl   . valueProperty()    . addListener((_obs, _old, _new) -> { System.out.println(_new); });
+			editDate  . valueProperty()    . addListener((_obs, _old, _new) -> { System.out.println(_new); });
+			editDay   . valueProperty()    . addListener((_obs, _old, _new) -> { System.out.println(_new); });
+
+			singleInt . selectedProperty() . addListener((_obs, _old, _new) -> { System.out.println(_new); });
+			singleDbl . selectedProperty() . addListener((_obs, _old, _new) -> { System.out.println(_new); });
+			singleCtr . selectedProperty() . addListener((_obs, _old, _new) -> { System.out.println(_new); });
 
 			return new BorderPane(options);
 		}

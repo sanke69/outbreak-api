@@ -18,18 +18,21 @@
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.function.Consumer;
 
 import javafx.beans.value.ObservableValue;
-import javafx.util.StringConverter;
 
 import fr.javafx.scene.PropertyEditors;
+import fr.javafx.scene.PropertyListControl;
 import fr.javafx.scene.properties.Editor;
+import fr.javafx.scene.properties.SelecterMulti;
 import fr.javafx.scene.properties.SelecterSingle;
 
 import fr.geodesic.referential.api.countries.Country;
+import fr.outbreak.api.Outbreak;
 import fr.outbreak.api.Outbreak.KpiType;
 import fr.outbreak.api.Outbreak.Population;
 import fr.outbreak.api.database.OutbreakDataBase;
@@ -37,28 +40,33 @@ import fr.outbreak.graphics.OutbreakViewerOptions;
 import fr.outbreak.graphics.charts.OutbreakSeries;
 
 public class OutbreakChartPaneOptionsComparison extends OutbreakViewerOptions<OutbreakChartPane> {
-	private final SelecterSingle<Country> 	countrySelecterA, countrySelecterB;
-	private final Editor<Integer>			daySelecterA,     daySelecterB;
+	private final SelecterMulti<Outbreak.Population>  	curveSelecter;
+	private final SelecterSingle<Country> 				countrySelecterA, countrySelecterB;
+	private final Editor<Integer>						daySelecterA,     daySelecterB;
 
 	public OutbreakChartPaneOptionsComparison() {
 		super();
+		curveSelecter   = PropertyEditors.newMultiSelecter(EnumSet.of(Population.Infected, Population.Dead));
+		curveSelecter.setMaxDisplayedItems(2);
 
-		countrySelecterA = PropertyEditors.newSingleSelecter(Country.class, new StringConverter<Country>() {
-			@Override public String  toString(Country c)       { return c.getName(); }
-			@Override public Country fromString(String string) { return null; }
-		});
+		countrySelecterA = PropertyEditors.newSingleSelecter(Country.class, Country::getName);
+//		countrySelecterA.setMaxDisplayedItems(5);
 		daySelecterA     = PropertyEditors.newDayEditor();
 
-		countrySelecterB = PropertyEditors.newSingleSelecter(Country.class, new StringConverter<Country>() {
-			@Override public String  toString(Country c)       { return c.getName(); }
-			@Override public Country fromString(String string) { return null; }
-		});
+		countrySelecterB = PropertyEditors.newSingleSelecter(Country.class, Country::getName);
+//		countrySelecterB.setMaxDisplayedItems(5);
 		daySelecterB     = PropertyEditors.newDayEditor();
 
-		addEntry(countrySelecterA . getNode());
-		addEntry(daySelecterA     . getNode());
-		addEntry(countrySelecterB . getNode());
-		addEntry(daySelecterB     . getNode());
+		PropertyListControl countryPaneA   = addSubPane("Country A");
+		PropertyListControl dayPaneA       = countryPaneA . addSubPane("Day Shift");
+		PropertyListControl countryPaneB   = addSubPane("Country B");
+		PropertyListControl dayPaneB       = countryPaneB . addSubPane("Day Shift");
+
+		countryPaneA . addEntry(countrySelecterA . getNode());
+		dayPaneA     . addEntry(daySelecterA     . getNode());
+
+		countryPaneB . addEntry(countrySelecterB . getNode());
+		dayPaneB     . addEntry(daySelecterB     . getNode());
 	}
 
 	@Override
@@ -78,11 +86,17 @@ public class OutbreakChartPaneOptionsComparison extends OutbreakViewerOptions<Ou
 
 		Runnable update = () -> {
 			KpiType          type       = KpiType.Value;
-			Country          countryA   = selectedCountryAProperty() . getValue();
-			Integer          shiftA     = selectedDayAProperty()     . getValue();
-			Country          countryB   = selectedCountryBProperty() . getValue();
-			Integer          shiftB     = selectedDayBProperty()     . getValue();
+			Country          countryA   = selectedCountryAProperty()   . getValue();
+			Integer          shiftA     = (int) selectedDayAProperty() . getValue();
+			Country          countryB   = selectedCountryBProperty()   . getValue();
+			Integer          shiftB     = (int) selectedDayBProperty() . getValue();
 			List<Population> population = Arrays.asList(Population.Infected, Population.Dead);
+
+			if(countryA == null || countryB == null)
+				return ;
+			
+			if(shiftA == null || shiftB == null)
+				return ;
 
 			OutbreakSeries   cA_series  = new OutbreakSeries( countryA.getName(), _charts.getDatabase().getReports(type, r -> r.getCountry().equals(countryA)), true, shiftA.intValue() );
 			OutbreakSeries   cB_series  = new OutbreakSeries( countryB.getName(), _charts.getDatabase().getReports(type, r -> r.getCountry().equals(countryB)), true, shiftB.intValue() );
@@ -97,10 +111,12 @@ public class OutbreakChartPaneOptionsComparison extends OutbreakViewerOptions<Ou
 		updateDB.accept( _charts.getDatabase() );
 
 		_charts.databaseProperty() . addListener((_obs, _old, _new) -> updateDB.accept(_new));
+
 		selectedCountryAProperty() . addListener((_obs, _old, _new) -> update.run());
 		selectedDayAProperty()     . addListener((_obs, _old, _new) -> update.run());
 		selectedCountryBProperty() . addListener((_obs, _old, _new) -> update.run());
 		selectedDayBProperty()     . addListener((_obs, _old, _new) -> update.run());
+
 	}
 
 	private final ObservableValue<Country> 	selectedCountryAProperty() {

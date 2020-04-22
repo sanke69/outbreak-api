@@ -24,7 +24,7 @@ import fr.outbreak.graphics.OutbreakViewer;
 
 public class PropertyListControl extends Control {
 	private static final int labelWidth = 120;
-	private static final int rowHeight  = 27;
+	private static final int rowHeight  = 32;
 	
 	private static record GridPaneColumnProperty(double width, Color color) {}
 	private static final  GridPaneColumnProperty left   = new GridPaneColumnProperty( labelWidth, Color.GRAY  ); 
@@ -117,7 +117,7 @@ public class PropertyListControl extends Control {
 
 	public PropertyListControl 			getSubMenu(String _title) {
 		return entries	.stream()
-						.filter(Entry::isSubMenu)
+						.filter(e -> e.isSubMenu() && e.label().getText().compareTo(_title) == 0)
 						.findAny()
 						.map(Entry::toSubMenu)
 						.orElse(null);

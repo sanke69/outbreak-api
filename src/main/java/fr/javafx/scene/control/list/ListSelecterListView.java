@@ -25,6 +25,9 @@ import javafx.scene.control.SelectionMode;
 import javafx.util.StringConverter;
 
 abstract class ListSelecterListView<T> implements ListSelecter.ListSelecterSkin<T> {
+	public static final double rowHeight = 27d;
+	public static final double padHeight =  2d;
+
 	private final ListSelecter<T>	skinnable;
 	private final ListView<T>		control;
 
@@ -56,7 +59,7 @@ abstract class ListSelecterListView<T> implements ListSelecter.ListSelecterSkin<
 				protected Double computeValue() {
 					int nbLines = control.getItems().size();
 
-					return (nbLines > _maxLines ? _maxLines : nbLines) * 24d + 2d;
+					return (nbLines > _maxLines ? _maxLines : nbLines) * rowHeight + padHeight;
 				}
 			};
 			control.prefHeightProperty().bind(hb);
