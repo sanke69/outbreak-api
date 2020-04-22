@@ -22,6 +22,8 @@ import javafx.scene.layout.Region;
 
 public interface Selecter<T> {
 
+	public void               	setMaxDisplayedItems(int _maxLines);
+
 	public Region 				getNode();
 
 	public ObservableList<T> 	itemsProperty();

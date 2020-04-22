@@ -20,19 +20,25 @@ package fr.javafx.scene;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.function.Function;
+
+import javafx.beans.value.ObservableValue;
+import javafx.scene.layout.Region;
+import javafx.util.StringConverter;
 
 import fr.java.time.Time;
-import fr.javafx.scene.control.list.ListViewSelecterMulti;
-import fr.javafx.scene.control.list.ListViewSelecterSingle;
+
+import fr.javafx.scene.control.DefaultSelecterMulti;
+import fr.javafx.scene.control.DefaultSelecterSingle;
+import fr.javafx.scene.control.list.ListSelecter.Visual;
 import fr.javafx.scene.control.slider.SliderWithDisplay;
 import fr.javafx.scene.properties.Editor;
 import fr.javafx.scene.properties.SelecterMulti;
 import fr.javafx.scene.properties.SelecterSingle;
+
 import fr.outbreak.api.Outbreak;
-import javafx.beans.value.ObservableValue;
-import javafx.scene.layout.Region;
-import javafx.util.StringConverter;
 
 public final class PropertyEditors {
 	public static final StringConverter<Double> tickDay         = new StringConverter<>() {
@@ -94,41 +100,119 @@ public final class PropertyEditors {
 	};
 
 	public static final <T> SelecterSingle<T> 					newSingleSelecter(Class<T> _class) {
-		return new ListViewSelecterSingle<T>(_class);
+		return new DefaultSelecterSingle<T>(_class);
+	}
+	public static final <T> SelecterSingle<T> 					newSingleSelecter(Class<T> _class, Function<T, String> _sc) {
+		return new DefaultSelecterSingle<T>(_class, _sc);
+	}
+	public static final <T> SelecterSingle<T> 					newSingleSelecter(Class<T> _class, Function<T, String> _sc, Visual _visual) {
+		return new DefaultSelecterSingle<T>(_class, _sc, _visual);
 	}
 	public static final <T> SelecterSingle<T> 					newSingleSelecter(Class<T> _class, StringConverter<T> _sc) {
-		return new ListViewSelecterSingle<T>(_class, _sc);
+		return new DefaultSelecterSingle<T>(_class, _sc);
+	}
+	public static final <T> SelecterSingle<T> 					newSingleSelecter(Class<T> _class, StringConverter<T> _sc, Visual _visual) {
+		return new DefaultSelecterSingle<T>(_class, _sc, _visual);
 	}
 	public static final <T> SelecterSingle<T> 					newSingleSelecter(T[] _array) {
-		return new ListViewSelecterSingle<T>(_array);
+		return new DefaultSelecterSingle<T>(_array);
+	}
+	public static final <T> SelecterSingle<T> 					newSingleSelecter(T[] _array, Function<T, String> _sc) {
+		return new DefaultSelecterSingle<T>(_array, _sc);
+	}
+	public static final <T> SelecterSingle<T> 					newSingleSelecter(T[] _array, Function<T, String> _sc, Visual _visual) {
+		return new DefaultSelecterSingle<T>(_array, _sc, _visual);
 	}
 	public static final <T> SelecterSingle<T> 					newSingleSelecter(T[] _array, StringConverter<T> _sc) {
-		return new ListViewSelecterSingle<T>(_array, _sc);
+		return new DefaultSelecterSingle<T>(_array, _sc);
+	}
+	public static final <T> SelecterSingle<T> 					newSingleSelecter(T[] _array, StringConverter<T> _sc, Visual _visual) {
+		return new DefaultSelecterSingle<T>(_array, _sc, _visual);
+	}
+	public static final <T> SelecterSingle<T> 					newSingleSelecter(Collection<T> _set) {
+		return new DefaultSelecterSingle<T>(_set);
+	}
+	public static final <T> SelecterSingle<T> 					newSingleSelecter(Collection<T> _set, StringConverter<T> _sc) {
+		return new DefaultSelecterSingle<T>(_set, _sc);
+	}
+	public static final <T> SelecterSingle<T> 					newSingleSelecter(Collection<T> _set, StringConverter<T> _sc, Visual _visual) {
+		return new DefaultSelecterSingle<T>(_set, _sc, _visual);
 	}
 	public static final <T extends Enum<T>> SelecterSingle<T> 	newSingleSelecter(EnumSet<T> _set) {
-		return new ListViewSelecterSingle<T>(_set);
+		return new DefaultSelecterSingle<T>(_set);
+	}
+	public static final <T extends Enum<T>> SelecterSingle<T> 	newSingleSelecter(EnumSet<T> _set, Function<T, String> _sc) {
+		return new DefaultSelecterSingle<T>(_set, _sc);
+	}
+	public static final <T extends Enum<T>> SelecterSingle<T> 	newSingleSelecter(EnumSet<T> _set, Function<T, String> _sc, Visual _visual) {
+		return new DefaultSelecterSingle<T>(_set, _sc, _visual);
 	}
 	public static final <T extends Enum<T>> SelecterSingle<T> 	newSingleSelecter(EnumSet<T> _set, StringConverter<T> _sc) {
-		return new ListViewSelecterSingle<T>(_set, _sc);
+		return new DefaultSelecterSingle<T>(_set, _sc);
+	}
+	public static final <T extends Enum<T>> SelecterSingle<T> 	newSingleSelecter(EnumSet<T> _set, StringConverter<T> _sc, Visual _visual) {
+		return new DefaultSelecterSingle<T>(_set, _sc, _visual);
 	}
 
 	public static final <T> SelecterMulti<T> 					newMultiSelecter(Class<T> _class) {
-		return new ListViewSelecterMulti<T>(_class);
+		return new DefaultSelecterMulti<T>(_class);
+	}
+	public static final <T> SelecterMulti<T> 					newMultiSelecter(Class<T> _class, Function<T, String> _sc) {
+		return new DefaultSelecterMulti<T>(_class, _sc);
+	}
+	public static final <T> SelecterMulti<T> 					newMultiSelecter(Class<T> _class, Function<T, String> _sc, Visual _visual) {
+		return new DefaultSelecterMulti<T>(_class, _sc, _visual);
 	}
 	public static final <T> SelecterMulti<T> 					newMultiSelecter(Class<T> _class, StringConverter<T> _sc) {
-		return new ListViewSelecterMulti<T>(_class, _sc);
+		return new DefaultSelecterMulti<T>(_class, _sc);
+	}
+	public static final <T> SelecterMulti<T> 					newMultiSelecter(Class<T> _class, StringConverter<T> _sc, Visual _visual) {
+		return new DefaultSelecterMulti<T>(_class, _sc, _visual);
 	}
 	public static final <T> SelecterMulti<T> 					newMultiSelecter(T[] _array) {
-		return new ListViewSelecterMulti<T>(Arrays.asList(_array));
+		return new DefaultSelecterMulti<T>(Arrays.asList(_array));
+	}
+	public static final <T> SelecterMulti<T> 					newMultiSelecter(T[] _array, Function<T, String> _sc) {
+		return new DefaultSelecterMulti<T>(Arrays.asList(_array), _sc);
+	}
+	public static final <T> SelecterMulti<T> 					newMultiSelecter(T[] _array, Function<T, String> _sc, Visual _visual) {
+		return new DefaultSelecterMulti<T>(Arrays.asList(_array), _sc, _visual);
 	}
 	public static final <T> SelecterMulti<T> 					newMultiSelecter(T[] _array, StringConverter<T> _sc) {
-		return new ListViewSelecterMulti<T>(Arrays.asList(_array), _sc);
+		return new DefaultSelecterMulti<T>(Arrays.asList(_array), _sc);
+	}
+	public static final <T> SelecterMulti<T> 					newMultiSelecter(T[] _array, StringConverter<T> _sc, Visual _visual) {
+		return new DefaultSelecterMulti<T>(Arrays.asList(_array), _sc, _visual);
+	}
+	public static final <T> SelecterMulti<T> 					newMultiSelecter(Collection<T> _set) {
+		return new DefaultSelecterMulti<T>(_set);
+	}
+	public static final <T> SelecterMulti<T> 					newMultiSelecter(Collection<T> _set, Function<T, String> _sc) {
+		return new DefaultSelecterMulti<T>(_set, _sc);
+	}
+	public static final <T> SelecterMulti<T> 					newMultiSelecter(Collection<T> _set, Function<T, String> _sc, Visual _visual) {
+		return new DefaultSelecterMulti<T>(_set, _sc, _visual);
+	}
+	public static final <T> SelecterMulti<T> 					newMultiSelecter(Collection<T> _set, StringConverter<T> _sc) {
+		return new DefaultSelecterMulti<T>(_set, _sc);
+	}
+	public static final <T> SelecterMulti<T> 					newMultiSelecter(Collection<T> _set, StringConverter<T> _sc, Visual _visual) {
+		return new DefaultSelecterMulti<T>(_set, _sc, _visual);
 	}
 	public static final <T extends Enum<T>> SelecterMulti<T> 	newMultiSelecter(EnumSet<T> _set) {
-		return new ListViewSelecterMulti<T>(_set);
+		return new DefaultSelecterMulti<T>(_set);
+	}
+	public static final <T extends Enum<T>> SelecterMulti<T> 	newMultiSelecter(EnumSet<T> _set, Function<T, String> _sc) {
+		return new DefaultSelecterMulti<T>(_set, _sc);
+	}
+	public static final <T extends Enum<T>> SelecterMulti<T> 	newMultiSelecter(EnumSet<T> _set, Function<T, String> _sc, Visual _visual) {
+		return new DefaultSelecterMulti<T>(_set, _sc, _visual);
 	}
 	public static final <T extends Enum<T>> SelecterMulti<T> 	newMultiSelecter(EnumSet<T> _set, StringConverter<T> _sc) {
-		return new ListViewSelecterMulti<T>(_set, _sc);
+		return new DefaultSelecterMulti<T>(_set, _sc);
+	}
+	public static final <T extends Enum<T>> SelecterMulti<T> 	newMultiSelecter(EnumSet<T> _set, StringConverter<T> _sc, Visual _visual) {
+		return new DefaultSelecterMulti<T>(_set, _sc, _visual);
 	}
 
 	public static final  Editor<Integer> 						newIntegerEditor(int _min, int _max, int _step, int _value) {
@@ -172,12 +256,12 @@ public final class PropertyEditors {
 	}
 
 	public static final SelecterSingle<Outbreak.Population> 	newPopulationSelecterSingle() {
-		SelecterSingle<Outbreak.Population> populationSelecter = new ListViewSelecterSingle<Outbreak.Population>(Arrays.asList(Outbreak.Population.values()));
+		SelecterSingle<Outbreak.Population> populationSelecter = new DefaultSelecterSingle<Outbreak.Population>(Arrays.asList(Outbreak.Population.values()));
 
 		return populationSelecter;
 	}
 	public static final SelecterMulti<Outbreak.Population> 		newPopulationSelecterMulti() {
-		SelecterMulti<Outbreak.Population> populationSelecter = new ListViewSelecterMulti<Outbreak.Population>(Arrays.asList(Outbreak.Population.values()));
+		SelecterMulti<Outbreak.Population> populationSelecter = new DefaultSelecterMulti<Outbreak.Population>(Arrays.asList(Outbreak.Population.values()));
 
 		return populationSelecter;
 	}

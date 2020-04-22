@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import fr.javafx.scene.layouts.FitPaneWithSlideMenuOverlay;
+import fr.javafx.scene.layouts.SlidedOverlayControl;
 import fr.outbreak.api.database.OutbreakDataBase;
 import fr.outbreak.graphics.layouts.OutbreakTab;
 import javafx.beans.property.ObjectProperty;
@@ -102,8 +102,8 @@ public class OutbreakStage extends Stage {
 
 		button.selectedProperty().addListener((_obs, _old, _new) -> button.setText(_new ? "<" : ">"));
 		button.setOnAction(e -> {
-			final FitPaneWithSlideMenuOverlay 
-			overlay = (FitPaneWithSlideMenuOverlay) tabs.getSelectionModel().getSelectedItem().getContent();
+			final SlidedOverlayControl 
+			overlay = (SlidedOverlayControl) tabs.getSelectionModel().getSelectedItem().getContent();
 			overlay . handle(e);
 		});
 

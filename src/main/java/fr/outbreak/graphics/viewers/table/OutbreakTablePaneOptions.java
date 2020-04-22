@@ -16,15 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */package fr.outbreak.graphics.viewers.table;
 
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import fr.geodesic.referential.api.countries.Country;
 import fr.javafx.scene.PropertyEditors;
 import fr.javafx.scene.properties.SelecterMulti;
+
+import fr.outbreak.api.Outbreak;
 import fr.outbreak.api.Outbreak.KpiType;
 import fr.outbreak.graphics.OutbreakViewerOptions;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.util.StringConverter;
 
 public class OutbreakTablePaneOptions extends OutbreakViewerOptions<OutbreakTablePane> {
 	SelecterMulti<Country> 	countrySelecter;
@@ -32,20 +36,22 @@ public class OutbreakTablePaneOptions extends OutbreakViewerOptions<OutbreakTabl
 	public OutbreakTablePaneOptions() {
 		super();
 
-		countrySelecter = PropertyEditors.newMultiSelecter(Country.class);
+		countrySelecter = PropertyEditors.newMultiSelecter(Country.class, new StringConverter<Country>() {
+			@Override public String  toString(Country c)       { return c.getName(); }
+			@Override public Country fromString(String string) { return null; }
+		});
 
 		addEntry(countrySelecter.getNode());
 	}
 
 	@Override
 	public void 					initialize(OutbreakTablePane _pane) {
-		_pane.databaseProperty().addListener((_obs, _old, _new) -> countrySelecter.itemsProperty().setAll(_new.getIndicators(KpiType.Variation, r -> r.getCountry(), true)));
+		_pane.databaseProperty().addListener((_obs, _old, _new) -> countrySelecter.itemsProperty().setAll(_new.getIndicators(KpiType.Variation, r -> r.getCountry(), Country.nameComparator)));
 
 		selectedCountryProperty().addListener((ListChangeListener<Country>) lc -> {
 			_pane.displayed.setAll(_pane.records.stream()
 									.filter(dr -> lc.getList().contains(dr.getCountry()))
-									.sorted()
-									.collect(Collectors.toList()));
+									.collect(Collectors.toCollection(() -> new TreeSet<Outbreak.LocalizedReport>(Outbreak.ReferencedReport.comparatorByDate()))));
 		});
 	}
 

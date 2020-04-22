@@ -95,7 +95,7 @@ public class OutbreakAboutPane extends OutbreakViewerBase {
 		sb.append("JavaFR: Covid-19" + "\n");
 		sb.append("----------------" + "\n");
 		sb.append("\n");
-		sb.append("    version: 0.0.1" + "\n");
+		sb.append("    version: 0.0.2" + "\n");
 		sb.append("    license: MPL v.2" + "\n");
 		sb.append("    author:  Steve PECHBERTI (a.k.a. sanke69)" + "\n");
 		sb.append("    email:   steve.pechberti@gmail.com" + "\n");

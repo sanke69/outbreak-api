@@ -187,8 +187,8 @@ public class SliderWithDisplay<T> extends Control {
 	    StringConverter<Double> toTicks   = new StringConverter<Double>() {
 
 									@Override
-									public String toString(Double _day) {
-										return String.format("%02d", _day.intValue());
+									public String toString(Double _value) {
+										return String.format("%02.3f", _value.doubleValue());
 									}
 						
 									@Override
@@ -218,7 +218,7 @@ public class SliderWithDisplay<T> extends Control {
 
 									@Override
 									public String toString(Double _day) {
-										return String.format("%02.3f", _day.doubleValue());
+										return String.format("%02d", _day.intValue());
 									}
 						
 									@Override
@@ -231,7 +231,7 @@ public class SliderWithDisplay<T> extends Control {
 
 	    							@Override
 	    							public String toString(Double _value) {
-	    								return String.format("%02.3f", _value.doubleValue());
+	    								return String.format("%02d", _value.intValue());
 	    							}
 
 	    							@Override

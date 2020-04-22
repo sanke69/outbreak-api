@@ -17,81 +17,23 @@
  */
 package fr.javafx.scene.control.list;
 
-import javafx.collections.ObservableList;
-import javafx.scene.Node;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
-import javafx.scene.control.SelectionMode;
 import javafx.util.StringConverter;
 
-public class ListSelecterListViewMulti<T> implements ListSelecter.ListSelecterSkinMulti<T> {
-	private final ListSelecter<T>		skinnable;
-	private final StringConverter<T> 	stringConverter;
-
-	ListView<T>							control;
+public class ListSelecterListViewMulti<T> extends ListSelecterListView<T> implements ListSelecter.ListSelecterSkinMulti<T> {
 
 	public ListSelecterListViewMulti(ListSelecter<T> _skinnable, StringConverter<T> _stringConverter) {
-		super();
-		skinnable       = _skinnable;
-		stringConverter = _stringConverter;
-		
-		control         = createNode();
-	}
-
-	@Override
-	public ListSelecter<T> 			getSkinnable() {
-		return skinnable;
-	}
-
-	@Override
-	public Node 					getNode() {
-		return control;
-	}
-
-	@Override
-	public ObservableList<T> 		getItems() {
-		return control.getItems();
+		super(_skinnable, true, _stringConverter);
 	}
 
 	@Override
 	public MultipleSelectionModel<T> 	getSelectionModel() {
-		return control.getSelectionModel();
+		return getNode().getSelectionModel();
 	}
 
 	@Override
 	public void 					dispose() {
 		;
-	}
-
-	private ListView<T> 			createNode() {
-		if(control != null)
-			return control;
-
-		control = new ListView<T>();
-		control.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-		class CustomListCell extends ListCell<T> {
-
-			public CustomListCell() {
-				super();
-			}
-
-			@Override
-			public void updateItem(T item, boolean empty) {
-				super.updateItem(item, empty);
-
-				if(empty || item == null)
-					setText(null);
-				else
-					setText(stringConverter != null ? stringConverter.toString(item) : item.toString());
-			}
-
-		}
-
-		control.setCellFactory(lv -> new CustomListCell());
-
-		return control;
 	}
 
 }

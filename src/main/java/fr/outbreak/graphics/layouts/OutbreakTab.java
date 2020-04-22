@@ -17,13 +17,13 @@
  */
 package fr.outbreak.graphics.layouts;
 
-import fr.javafx.scene.layouts.FitPaneWithSlideMenuOverlay;
+import fr.javafx.scene.layouts.SlidedOverlayControl;
 import fr.outbreak.graphics.OutbreakViewerBase;
 import fr.outbreak.graphics.OutbreakViewerOptions;
 import fr.outbreak.graphics.OutbreakViewer;
 import javafx.scene.control.Tab;
 
-public class OutbreakTab extends FitPaneWithSlideMenuOverlay {
+public class OutbreakTab extends SlidedOverlayControl {
 
 	private final OutbreakViewer			viewer;
 	private final OutbreakViewer.Options<?>	viewerOptions;
@@ -34,7 +34,7 @@ public class OutbreakTab extends FitPaneWithSlideMenuOverlay {
 	}
 	public <OVP extends OutbreakViewerBase & OutbreakViewer, OO extends OutbreakViewerOptions<OVP> & OutbreakViewer.Options<OVP>> 
 	OutbreakTab(OVP _visual, OO _option) {
-		super(_visual, FitPaneWithSlideMenuOverlay.TranslateDirection.RIGHT, OutbreakViewer.Options.width);
+		super(_visual, SlidedOverlayControl.TranslateDirection.RIGHT, OutbreakViewer.Options.width);
 
 		if(_option != null)
 			getSlidePane().getChildren().setAll(_option);

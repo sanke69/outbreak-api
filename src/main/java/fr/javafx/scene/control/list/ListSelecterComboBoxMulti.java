@@ -55,4 +55,10 @@ public class ListSelecterComboBoxMulti<T> implements ListSelecter.ListSelecterSk
 		;
 	}
 
+	@Override
+	public void autoAjdustHeight(boolean _autoAdjust, int _maxLines) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

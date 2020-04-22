@@ -32,7 +32,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
-public class FitPaneWithSlideMenuOverlay extends Control implements EventHandler<ActionEvent> {
+public class SlidedOverlayControl extends Control implements EventHandler<ActionEvent> {
 	public static enum TranslateDirection { LEFT, RIGHT, UP, DOWN };
 
 	AnchorPane  			substitute;
@@ -92,13 +92,13 @@ public class FitPaneWithSlideMenuOverlay extends Control implements EventHandler
 
     ObjectProperty<Color>	overlayColorProperty;
 
-	public FitPaneWithSlideMenuOverlay(Node _overlayed) {
+	public SlidedOverlayControl(Node _overlayed) {
 		this(_overlayed, TranslateDirection.LEFT, 0, -1, -1);
 	}
-    public FitPaneWithSlideMenuOverlay(Node _overlayed, TranslateDirection _dir) {
+    public SlidedOverlayControl(Node _overlayed, TranslateDirection _dir) {
     	this(_overlayed, _dir, 0, -1, -1);
     }
-    public FitPaneWithSlideMenuOverlay(Node _overlayed, TranslateDirection _dir, double _dim) {
+    public SlidedOverlayControl(Node _overlayed, TranslateDirection _dir, double _dim) {
     	super();
 		setOverlayed(_overlayed);
 
@@ -123,7 +123,7 @@ public class FitPaneWithSlideMenuOverlay extends Control implements EventHandler
 	        		System.err.println("Big Issue");
 	        	}
     }
-    public FitPaneWithSlideMenuOverlay(Node _overlayed, TranslateDirection _dir, double _offset, double _width, double _height) {
+    public SlidedOverlayControl(Node _overlayed, TranslateDirection _dir, double _offset, double _width, double _height) {
     	super();
 		setOverlayed(_overlayed);
 
@@ -147,12 +147,12 @@ public class FitPaneWithSlideMenuOverlay extends Control implements EventHandler
 	        	}
     }
 
-	protected Skin<FitPaneWithSlideMenuOverlay> createDefaultSkin() {
-		return new Skin<FitPaneWithSlideMenuOverlay>() {
+	protected Skin<SlidedOverlayControl> createDefaultSkin() {
+		return new Skin<SlidedOverlayControl>() {
 
 			@Override
-			public FitPaneWithSlideMenuOverlay getSkinnable() {
-				return FitPaneWithSlideMenuOverlay.this;
+			public SlidedOverlayControl getSkinnable() {
+				return SlidedOverlayControl.this;
 			}
 
 			@Override

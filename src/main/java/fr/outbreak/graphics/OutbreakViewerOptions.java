@@ -17,16 +17,16 @@
  */
 package fr.outbreak.graphics;
 
-import javafx.geometry.Insets;
-import javafx.scene.control.Label;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.GridPane;
+import javafx.scene.Node;
+import javafx.scene.control.Control;
+import javafx.scene.control.Labeled;
+import javafx.scene.control.Skin;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 
-public abstract class OutbreakViewerOptions<OV extends OutbreakViewer> extends GridPane implements OutbreakViewer.Options<OV> {
+import fr.javafx.scene.PropertyListControl;
+
+public abstract class OutbreakViewerOptions<OV extends OutbreakViewer> extends Control implements OutbreakViewer.Options<OV> {
 	private static final int labelWidth = 120;
 	private static final int rowHeight  = 27;
 
@@ -35,67 +35,50 @@ public abstract class OutbreakViewerOptions<OV extends OutbreakViewer> extends G
 	private static final  GridPaneColumnProperty right  = new GridPaneColumnProperty( OutbreakViewer.Options.width - labelWidth, Color.GRAY.brighter() );
 	private static final  GridPaneColumnProperty unique = new GridPaneColumnProperty( OutbreakViewer.Options.width, left.color.interpolate(right.color, 0.5) );
 
+	private final PropertyListControl content;
+
 	public OutbreakViewerOptions() {
 		super();
 		setPrefWidth( OutbreakViewer.Options.width );
+
+		content = new PropertyListControl();
 	}
 
 	public abstract void initialize(OV _charts);
 
 	public 			void addEntry(Region _control) {
-		final int nextRow = getRowCount();
-
-		_control        . setBackground(new Background(new BackgroundFill(unique.color(), CornerRadii.EMPTY, Insets.EMPTY)));
-		_control        . setMinWidth   (unique.width());
-		_control        . setPrefWidth  (unique.width());
-		_control        . setMaxWidth   (unique.width());
-		_control        . setMinHeight  (rowHeight);
-		_control        . setMaxHeight  (5 * rowHeight);
-
-		add(_control, 0, nextRow, 2, 1);
+		content.addEntry(_control);
 	}
 	public 			void addEntry(String    _name, Region _control) {
-		final int nextRow = getRowCount();
-
-		Label label     = new Label(_name);
-		label           . setBackground (new Background(new BackgroundFill(left.color(), CornerRadii.EMPTY, Insets.EMPTY)));
-		label           . setMinWidth   (left.width());
-		label           . setPrefWidth  (left.width());
-		label           . setMaxWidth   (left.width());
-		label           . setMinHeight  (rowHeight);
-		label           . setPrefHeight (rowHeight);
-		label           . setMaxHeight  (rowHeight);
-
-		_control        . setBackground(new Background(new BackgroundFill(right.color(), CornerRadii.EMPTY, Insets.EMPTY)));
-		_control        . setMinWidth   (right.width());
-		_control        . setPrefWidth  (right.width());
-		_control        . setMaxWidth   (right.width());
-		_control        . setMinHeight  (rowHeight);
-		_control        . setMaxHeight  (5 * rowHeight);
-
-		add(new Label(_name), 0, nextRow, 1, 1);
-		add(        _control, 1, nextRow, 1, 1);
+		content.addEntry(_name,  _control);
 	}
-	public 			void addEntry(Region   _label, Region _control) {
-		final int nextRow = getRowCount();
+	public 			void addEntry(Labeled   _label, Region _control) {
+		content.addEntry(_label, _control);
+	}
 
-		_label          . setBackground (new Background(new BackgroundFill(left.color(), CornerRadii.EMPTY, Insets.EMPTY)));
-		_label          . setMinWidth   (left.width());
-		_label          . setPrefWidth  (left.width());
-		_label          . setMaxWidth   (left.width());
-		_label          . setMinHeight  (rowHeight);
-		_label          . setPrefHeight (rowHeight);
-		_label          . setMaxHeight  (rowHeight);
+	public PropertyListControl addSubPane(String _name) {
+		return content.addSubPane(_name);
+	}
 
-		_control        . setBackground(new Background(new BackgroundFill(right.color(), CornerRadii.EMPTY, Insets.EMPTY)));
-		_control        . setMinWidth  (right.width());
-		_control        . setPrefWidth (right.width());
-		_control        . setMaxWidth  (right.width());
-		_control        . setMinHeight  (rowHeight);
-		_control        . setMaxHeight  (rowHeight);
+	protected Skin<OutbreakViewerOptions<OV>> createDefaultSkin() {
+		return new Skin<OutbreakViewerOptions<OV>>() {
 
-		add(_label,   0, nextRow, 1, 1);
-		add(_control, 1, nextRow, 1, 1);
+			@Override
+			public OutbreakViewerOptions<OV> getSkinnable() {
+				return OutbreakViewerOptions.this;
+			}
+
+			@Override
+			public Node getNode() {
+				return content;
+			}
+
+			@Override
+			public void dispose() {
+				
+			}
+			
+		};
 	}
 
 }

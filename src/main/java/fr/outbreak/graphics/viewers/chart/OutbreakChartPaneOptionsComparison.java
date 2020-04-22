@@ -71,7 +71,6 @@ public class OutbreakChartPaneOptionsComparison extends OutbreakViewerOptions<Ou
 				countrySelecterA.itemsProperty().setAll(countries);
 				countrySelecterB.itemsProperty().setAll(countries);
 			} else {
-
 				countrySelecterA.itemsProperty().setAll(Collections.emptyList());
 				countrySelecterB.itemsProperty().setAll(Collections.emptyList());
 			}

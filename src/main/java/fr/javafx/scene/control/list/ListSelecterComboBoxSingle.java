@@ -92,4 +92,10 @@ public class ListSelecterComboBoxSingle<T> implements ListSelecter.ListSelecterS
 		return control;
 	}
 
+	@Override
+	public void autoAjdustHeight(boolean _autoAdjust, int _maxLines) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

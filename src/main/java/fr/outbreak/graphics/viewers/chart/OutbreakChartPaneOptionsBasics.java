@@ -17,6 +17,7 @@
  */package fr.outbreak.graphics.viewers.chart;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 
 import javafx.beans.value.ObservableValue;
@@ -42,7 +43,10 @@ public class OutbreakChartPaneOptionsBasics extends OutbreakViewerOptions<Outbre
 
 	public OutbreakChartPaneOptionsBasics() {
 		super();
-		curveSelecter   = PropertyEditors.newPopulationSelecterMulti();
+//		curveSelecter   = PropertyEditors.newPopulationSelecterMulti();
+		curveSelecter   = PropertyEditors.newMultiSelecter(EnumSet.of(Population.Infected, Population.Dead));
+		curveSelecter.setMaxDisplayedItems(2);
+
 		countrySelecter = PropertyEditors.newSingleSelecter(Country.class, new StringConverter<Country>() {
 			@Override public String  toString(Country c)       { return c.getName(); }
 			@Override public Country fromString(String string) { return null; }
@@ -62,6 +66,9 @@ public class OutbreakChartPaneOptionsBasics extends OutbreakViewerOptions<Outbre
 			KpiType          type       = KpiType.Value;
 			Country          country    = selectedCountryProperty().getValue();
 			List<Population> population = selectedCurveProperty();
+
+			if(country == null || population == null || population.isEmpty())
+				return ;
 
 			OutbreakSeries   c_series   = new OutbreakSeries( country.getName(), _charts.getDatabase().getReports(type, r -> r.getCountry().equals(country)) );
 

@@ -17,7 +17,7 @@
  */
 package fr.run.outbreak;
 
-import fr.javafx.scene.layouts.FitPaneWithSlideMenuOverlay;
+import fr.javafx.scene.layouts.SlidedOverlayControl;
 import fr.outbreak.graphics.OutbreakViewer;
 import fr.run.outbreak.defaults.TestPane;
 import fr.run.outbreak.defaults.TestPaneOptions;
@@ -47,7 +47,7 @@ public abstract class OutbreakPaneWithSliderTest {
 //			TestPane        testPane        = new TestPane();
 //			TestPaneOptions testPaneOptions = new TestPaneOptions();
 			
-			FitPaneWithSlideMenuOverlay pane = new FitPaneWithSlideMenuOverlay(new TestPane(), FitPaneWithSlideMenuOverlay.TranslateDirection.RIGHT, OutbreakViewer.Options.width);
+			SlidedOverlayControl pane = new SlidedOverlayControl(new TestPane(), SlidedOverlayControl.TranslateDirection.RIGHT, OutbreakViewer.Options.width);
 			pane.setStyle("-fx-background-color: " + "rgb(69, 169, 69)" + ";");
 
 			pane.getSlidePane().getChildren().setAll(new TestPaneOptions());

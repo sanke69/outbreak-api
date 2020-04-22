@@ -17,11 +17,13 @@
  */
 package fr.outbreak.graphics;
 
-import fr.outbreak.api.database.OutbreakDataBase;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.Node;
+import javafx.scene.control.Labeled;
 import javafx.scene.layout.Region;
+
+import fr.outbreak.api.database.OutbreakDataBase;
 
 public interface OutbreakViewer {
 
@@ -32,7 +34,7 @@ public interface OutbreakViewer {
 	
 		public 			void addEntry(Region _control);
 		public 			void addEntry(String    _name, Region _control);
-		public 			void addEntry(Region   _label, Region _control);
+		public 			void addEntry(Labeled  _label, Region _control);
 	
 	}
 
