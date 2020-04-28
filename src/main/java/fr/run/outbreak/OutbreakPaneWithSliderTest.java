@@ -18,7 +18,8 @@
 package fr.run.outbreak;
 
 import fr.javafx.scene.layouts.SlidedOverlayControl;
-import fr.outbreak.graphics.OutbreakViewer;
+
+import fr.outbreak.api.OutbreakViewer;
 import fr.run.outbreak.defaults.TestPane;
 import fr.run.outbreak.defaults.TestPaneOptions;
 import javafx.application.Application;

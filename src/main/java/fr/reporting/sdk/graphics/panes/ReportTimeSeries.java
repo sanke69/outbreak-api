@@ -1,0 +1,137 @@
+/**
+ * OutBreak API
+ * Copyright (C) 2020-?XYZ  Steve PECHBERTI <steve.pechberti@gmail.com>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */package fr.reporting.sdk.graphics.panes;
+
+import java.text.DecimalFormat;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.EnumSet;
+import java.util.TimeZone;
+
+import javafx.beans.property.ObjectProperty;
+import javafx.collections.ObservableList;
+import javafx.geometry.Side;
+import javafx.scene.Node;
+import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Series;
+import javafx.scene.control.Skin;
+import javafx.scene.layout.BorderPane;
+
+import fr.javafx.scene.control.chart.XYAxis;
+import fr.javafx.scene.control.chart.XYChartInterface;
+import fr.javafx.scene.control.chart.axis.NumberAxis;
+
+import fr.outbreak.api.Outbreak.Population;
+import fr.reporting.api.Report;
+import fr.reporting.api.ReportViewer;
+import fr.reporting.sdk.graphics.ReportViewerBase;
+
+public class ReportTimeSeries<R extends Report, DB extends Report.DataBase<R>> 
+					extends    ReportViewerBase<R, DB> 
+					implements ReportViewer.TimeSeries<R, DB> {
+	private final BorderPane                      	container;
+	private final XYChartInterface<Number,Number> 	chart;
+	private NumberAxis<Number>						x_axis;
+	private NumberAxis<Number>						y_axis;
+
+	private final boolean 							useDateAxis;
+	public EnumSet<Population> 						defaultPopulations;
+
+	public ReportTimeSeries() {
+		this("Chart View", true);
+	}
+	public ReportTimeSeries(String _title) {
+		this(_title, true);
+	}
+	public ReportTimeSeries(boolean _useDateAxis) {
+		this("Chart View", _useDateAxis);
+	}
+	public ReportTimeSeries(String _title, boolean _useDateAxis) {
+		super(_title);
+
+		chart              = createChart();
+		container          = createContainer();
+
+		useDateAxis        = _useDateAxis;
+		defaultPopulations = EnumSet.allOf(Population.class);
+	}
+
+	@Override
+	public XYChart<Number,Number> 									getXYChart()											{ return chart.getXYChart(); }
+
+	@Override
+    public ObservableList<Series<Number,Number>> 					getData() 												{ return chart.dataProperty().get(); }
+	@Override
+    public void 													setData(ObservableList<Series<Number, Number>> value) 	{ chart.setData( value ); }
+	@Override
+    public ObjectProperty<ObservableList<Series<Number,Number>>> 	dataProperty() 											{ return chart.dataProperty(); }
+
+	@Override
+	protected Skin<? extends ReportTimeSeries<R, DB>> 				createDefaultSkin() {
+		return new Skin<ReportTimeSeries<R, DB>>() {
+			@Override public ReportTimeSeries<R, DB> getSkinnable() 	{ return ReportTimeSeries.this; }
+			@Override public Node getNode() 						{ return container; }
+			@Override public void dispose() 						{  }
+		};
+	}
+
+	protected final NumberAxis<Number>										getXAxis() {
+		if(x_axis != null)
+			return x_axis;
+		
+		Format format = null;
+		if(useDateAxis) {
+			format = new SimpleDateFormat( "yyyy-MM-dd" );
+
+			((SimpleDateFormat) format) . setTimeZone( TimeZone.getTimeZone( "GMT" ) );
+		} else {
+			format = new DecimalFormat("j ###,###");
+		}
+
+		x_axis = new NumberAxis<Number>();
+		x_axis.setAxisTickFormatter(XYAxis.TickFormatter.withFormat( format ) );
+		x_axis.setAnimated(false);
+		x_axis.setSide(Side.BOTTOM);
+
+		return x_axis;
+	}
+	protected final NumberAxis<Number>										getYAxis() {
+		if(y_axis != null)
+			return y_axis;
+
+		y_axis = new NumberAxis<Number>();
+		y_axis . setSide(Side.LEFT);
+
+		return y_axis;
+	}
+
+	private final BorderPane										createContainer() {
+		BorderPane container = new BorderPane(chart.getNode(),null,null,null,null);
+		container.setStyle("-fx-background-color: gray;");
+
+		return container;
+	}
+	private final XYChartInterface<Number,Number>
+																	createChart() {
+		XYChartInterface<Number,Number> chart = XYChartInterface.newInstance(XYChartInterface.Mode.Line, getXAxis(), getYAxis());
+		chart . enablePanning(true)
+			  . enableZooming(true)
+			  . enableAutoRange(true);
+
+		return chart;
+	}
+}

@@ -5,9 +5,9 @@
 
 	<groupId>com.pechberti.steve</groupId>
 	<artifactId>outbreak-api</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.1.1-SNAPSHOT</version>
 
-	<name>JavaFR: Outbreak API</name>
+	<name>JavaFR: Report/Outbreak API</name>
 	<description>
 	Made during the SARS-Cov-2 pandemy, also named Covid-19
 	

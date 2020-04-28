@@ -15,30 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package fr.run.outbreak;
+package fr.outbreak.api;
 
-import java.io.IOException;
+import fr.reporting.api.ReportViewer;
 
-import javafx.application.Application;
+public interface OutbreakViewer extends ReportViewer<Outbreak.Report, Outbreak.DataBase> {
 
-import fr.outbreak.OutbreakApplication;
-import fr.run.outbreak.defaults.TestPane;
-import fr.run.outbreak.defaults.TestPaneOptions;
+	public interface Chart       extends OutbreakViewer, ReportViewer.Chart      <Outbreak.Report, Outbreak.DataBase> { }
+	public interface TimeSeries  extends OutbreakViewer, ReportViewer.TimeSeries <Outbreak.Report, Outbreak.DataBase> { }
+	public interface Map         extends OutbreakViewer, ReportViewer.Map        <Outbreak.Report, Outbreak.DataBase> { }
+	public interface Table       extends OutbreakViewer, ReportViewer.Table      <Outbreak.Report, Outbreak.DataBase> { }
 
-public class OutbreakStageTest extends OutbreakApplication.Graphics {
-
-	public static void main(String[] args) throws IOException {
-		Application.launch(OutbreakStageTest.class, args);
-	}
-
-	public OutbreakStageTest() {
-		super();
-	}
-
-	@Override
-	public void setViewers(Stage _stage) {
-		_stage.registerViewerPane(new TestPane("No options..."));
-		_stage.registerViewerPane(new TestPane("With options..."), new TestPaneOptions());
-	}
+	public interface Options<OV extends OutbreakViewer> extends ReportViewer.Options<OV> {}
 
 }

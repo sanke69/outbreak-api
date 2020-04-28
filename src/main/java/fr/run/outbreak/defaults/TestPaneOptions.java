@@ -20,18 +20,20 @@ package fr.run.outbreak.defaults;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.javafx.scene.PropertyEditors;
-import fr.javafx.scene.properties.Editor;
-import fr.javafx.scene.properties.SelecterMulti;
-import fr.javafx.scene.properties.SelecterSingle;
-import fr.outbreak.api.Outbreak;
-import fr.outbreak.graphics.OutbreakViewerOptions;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 
-public class TestPaneOptions extends OutbreakViewerOptions<TestPane> {
+import fr.javafx.scene.PropertyEditors;
+import fr.javafx.scene.properties.Editor;
+import fr.javafx.scene.properties.SelecterMulti;
+import fr.javafx.scene.properties.SelecterSingle;
+
+import fr.outbreak.api.Outbreak;
+import fr.reporting.sdk.graphics.ReportViewerOptions;
+
+public class TestPaneOptions extends ReportViewerOptions<TestPane> {
 	private final Editor <Integer> 						dayEditor;
 	private final SelecterSingle <Outbreak.Population> 	singleSelecter;
 	private final SelecterMulti  <Outbreak.Population>  multiSelecter;

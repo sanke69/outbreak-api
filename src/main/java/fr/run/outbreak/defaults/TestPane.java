@@ -17,13 +17,15 @@
  */
 package fr.run.outbreak.defaults;
 
-import fr.outbreak.graphics.OutbreakViewerBase;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Skin;
 import javafx.scene.layout.BorderPane;
 
-public class TestPane extends OutbreakViewerBase {
+import fr.outbreak.api.Outbreak;
+import fr.reporting.sdk.graphics.ReportViewerBase;
+
+public class TestPane extends ReportViewerBase<Outbreak.Report, Outbreak.DataBase> {
 
 	public TestPane() {
 		super("Test View");
@@ -33,10 +35,10 @@ public class TestPane extends OutbreakViewerBase {
 	}
 
 	@Override
-	protected Skin<OutbreakViewerBase> createDefaultSkin() {
-		return new Skin<OutbreakViewerBase>() {
+	protected Skin<TestPane> createDefaultSkin() {
+		return new Skin<TestPane>() {
 			Node skin = new BorderPane(new Label("OUTBREAK TEST PANE"));
-			@Override public OutbreakViewerBase getSkinnable() 	{ return TestPane.this; }
+			@Override public TestPane getSkinnable() 	{ return TestPane.this; }
 			@Override public Node getNode() 					{ return skin; }
 			@Override public void dispose() 					{  }
 		};

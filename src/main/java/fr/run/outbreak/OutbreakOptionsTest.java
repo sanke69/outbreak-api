@@ -37,8 +37,8 @@ import fr.javafx.scene.properties.SelecterMulti;
 import fr.javafx.scene.properties.SelecterSingle;
 
 import fr.geodesic.referential.api.countries.Country;
-import fr.outbreak.graphics.OutbreakViewer;
-import fr.outbreak.graphics.OutbreakViewerOptions;
+import fr.outbreak.api.OutbreakViewer;
+import fr.reporting.sdk.graphics.ReportViewerOptions;
 
 public abstract class OutbreakOptionsTest {
 
@@ -72,7 +72,7 @@ public abstract class OutbreakOptionsTest {
 			Editor<LocalDate>		editDate  = PropertyEditors.newLocalDateEditor(LocalDate.now().minusDays(60), LocalDate.now().plusDays(60));
 			Editor<Integer>         editDay   = PropertyEditors.newDayEditor(-10, 10);
 
-			OutbreakViewerOptions<?> options = new OutbreakViewerOptions<OutbreakViewer>() { public void initialize(OutbreakViewer _null) {} };
+			ReportViewerOptions<?>  options   = new ReportViewerOptions<OutbreakViewer>() { public void initialize(OutbreakViewer _null) {} };
 
 			PropertyListControl s1 = options.addSubPane("Editors");
 			s1.addEntry(editInt.getNode());
