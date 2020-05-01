@@ -23,7 +23,7 @@ import fr.reporting.sdk.graphics.panes.ReportAboutPane;
 public class OutbreakAboutPane extends ReportAboutPane<Outbreak.Report, Outbreak.DataBase> {
 
     public OutbreakAboutPane() {
-    	this(null);
+    	this("About...");
     }
     public OutbreakAboutPane(String _title) {
     	super(_title);

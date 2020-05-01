@@ -23,11 +23,11 @@ import java.text.SimpleDateFormat;
 import java.util.EnumSet;
 import java.util.TimeZone;
 
-import fr.javafx.scene.control.chart.XYAxis;
+import fr.javafx.scene.control.chart.XY;
 
 import fr.outbreak.api.Outbreak;
-import fr.outbreak.api.OutbreakViewer;
 import fr.outbreak.api.Outbreak.Population;
+import fr.outbreak.api.OutbreakViewer;
 import fr.outbreak.graphics.timeseries.OutbreakSeries;
 import fr.reporting.api.Report;
 import fr.reporting.sdk.graphics.panes.ReportTimeSeries;
@@ -51,9 +51,9 @@ public class OutbreakTimeSeries extends ReportTimeSeries<Outbreak.Report, Outbre
 			Format format = new SimpleDateFormat( "yyyy-MM-dd" );
 			((SimpleDateFormat) format) . setTimeZone( TimeZone.getTimeZone( "GMT" ) );
 
-			getXAxis().setAxisTickFormatter(XYAxis.TickFormatter.withFormat( format ) );
+//			getXAxis().setAxisTickFormatter(XY.Axis.Ticks.newFormatter( format ) );
 		} else {
-			getXAxis().setAxisTickFormatter(XYAxis.TickFormatter.withFormat( new DecimalFormat("j ###,###") ) );
+//			getXAxis().setAxisTickFormatter(XY.Axis.Ticks.newNumberFormat( new DecimalFormat("j ###,###") ) );
 		}
 
 		databaseProperty().addListener( (_obs, _old, _new) -> {

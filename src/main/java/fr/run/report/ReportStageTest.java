@@ -20,57 +20,64 @@ package fr.run.report;
 import java.io.IOException;
 
 import javafx.application.Application;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.stage.Stage;
+import javafx.beans.binding.Bindings;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.Skin;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
 
 import fr.reporting.api.Report;
 import fr.reporting.sdk.graphics.ReportStage;
-import fr.reporting.sdk.graphics.panes.ReportAboutPane;
+import fr.reporting.sdk.graphics.ReportViewerBase;
 
-public class ReportStageTest extends Application {
-	public interface TestReport extends Report {}
+public class ReportStageTest extends ReportApplicationBase {
+
+	class DummyChart extends ReportViewerBase<TestReport, Report.DataBase<TestReport>> {
+
+		protected DummyChart() {
+			super("DemoChart");
+		}
+
+		@Override
+		protected Skin<DummyChart> createDefaultSkin() {
+			return new Skin<DummyChart>() {
+				BorderPane pane = null;
+
+				@Override
+				public DummyChart getSkinnable() {
+					return DummyChart.this;
+				}
+
+				@Override
+				public Node getNode() {
+					if(pane != null)
+						return pane;
+
+					pane = new BorderPane();
+					pane . backgroundProperty()
+						 . bind		(Bindings.when(pane.hoverProperty())
+				         . then		(new Background(new BackgroundFill(Color.DARKGREEN, CornerRadii.EMPTY, Insets.EMPTY)))
+				         . otherwise(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY))));
+
+					return pane;
+				}
+
+				@Override
+				public void dispose() {
+					;
+				}
+				
+			};
+		}
+		
+	}
 	
-	public static class ReportStageDef extends ReportStage<TestReport, Report.DataBase<TestReport>> {}
-	
-	private final ObjectProperty<Report.DataBase<TestReport>> 		databaseProperty;
-	private ReportStage<TestReport, Report.DataBase<TestReport>> 	stage;
-
-	public ReportStageTest() {
-		super();
-
-		databaseProperty = new SimpleObjectProperty<Report.DataBase<TestReport>>();
-	}
-
-	public final void setDatabase(Report.DataBase<TestReport> _database) {
-		databaseProperty.set( _database );
-	}
-	public final Report.DataBase<TestReport> getDatabase() {
-		return databaseProperty.get();
-	}
-	public final ObjectProperty<Report.DataBase<TestReport>> databaseProperty() {
-		return databaseProperty;
-	}
-
-	public final ReportStage<TestReport, Report.DataBase<TestReport>> getPrimaryStage() {
-		if(stage != null)
-			return stage;
-
-		stage = new ReportStage<TestReport, Report.DataBase<TestReport>>(1280, 640);
-		stage . databaseProperty().bind(databaseProperty());
-		stage . show();
-
-		return stage;
-	}
-
 	public void setViewers(ReportStage<TestReport, Report.DataBase<TestReport>> _stage) {
-		_stage.registerViewerPane("World", new ReportAboutPane<TestReport, Report.DataBase<TestReport>>("No options..."));
-		_stage.registerViewerPane(new ReportAboutPane<TestReport, Report.DataBase<TestReport>>("About..."));
-	}
-
-	@Override
-	public final void start(Stage primaryStage) throws Exception {
-		setViewers( getPrimaryStage() );
+		_stage.registerViewerPane(new DummyChart());
 	}
 
 	public static void main(String[] args) throws IOException {

@@ -1,145 +1,137 @@
 package fr.javafx.scene.control.chart.axis;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.scene.chart.ValueAxis;
 
-public final class LogarithmicAxis extends ValueAxis<Number> {
-    private final DoubleProperty currentUpperBound = new SimpleDoubleProperty();
+import fr.javafx.scene.control.chart.XY;
 
-    public LogarithmicAxis() {
-        super();
-    }
-    public LogarithmicAxis(double lowerBound, double upperBound) {
-        super(lowerBound, upperBound);
-    }
+public final class LogarithmicAxis extends XYValueAxis {
+	private static final int DEFAULT_LOGARITHM_BASE = 10;
+	private static final int DEFAULT_TICK_COUNT = 9;
 
-    @Override
-    protected void 			setRange(Object range, boolean animate) {
-        double   lowerBound    = ((double[]) range)[0];
-        double   upperBound    = ((double[]) range)[1];
-        double[] r             = (double[]) range;
-        double   oldLowerBound = getLowerBound();
-        double   oldUpperBound = getUpperBound();
-        double   lower         = r[0];
-        double   upper         = r[1];
+	private final DoubleProperty logarithmBase = new SimpleDoubleProperty(LogarithmicAxis.this, "logarithmBase",
+			DEFAULT_LOGARITHM_BASE) {
+		@Override
+		protected void invalidated() {
+			if (get() <= 1) {
+				throw new IllegalArgumentException("logarithmBase must be grater than 1");
+			}
+			invalidateRange();
+			requestAxisLayout();
+		}
+	};
+	public LogarithmicAxis() {
+		this(null);
+	}
+	public LogarithmicAxis(String axisLabel) {
+		setLabel(axisLabel);
+		setMinorTickCount(DEFAULT_TICK_COUNT);
+	}
+	public LogarithmicAxis(String axisLabel, double lowerBound, double upperBound) {
+		super(axisLabel, lowerBound, upperBound);
+		setMinorTickCount(DEFAULT_TICK_COUNT);
+	}
 
-        setLowerBound(lower);
-        setUpperBound(upper);
+	public void 				setLogarithmBase(double value) {
+		logarithmBase.set(value);
+	}
+	public double 				getLogarithmBase() {
+		return logarithmBase.get();
+	}
+	public DoubleProperty 		logarithmBaseProperty() {
+		return logarithmBase;
+	}
 
-        currentLowerBound.set(lowerBound);
-        currentUpperBound.set(upperBound);
-    }
-    @Override
-    protected double[] 		getRange() {
-        return new double[] { getLowerBound(), getUpperBound() };
-    }
-    @Override
-    protected Object 		autoRange(double minValue, double maxValue, double length, double labelSize) {
-        if (isAutoRanging()) {
-            return new double[]{minValue, maxValue};
-        } else {
-            return getRange();
-        }
-    }
+	@Override
+	public Number 				getValueForDisplay(double displayPosition) {
+		double upperBoundLog = log(getUpperBound());
+		double lowerBoundLog = log(getLowerBound());
+		double logScaleLength = upperBoundLog - lowerBoundLog;
+		if (getSide().isVertical()) {
+			double height = getHeight();
+			return pow(lowerBoundLog + ((height - displayPosition) / height) * logScaleLength);
+		}
+		return pow(lowerBoundLog + ((displayPosition / getWidth()) * logScaleLength));
+	}
+	@Override
+	public double 				getDisplayPosition(Number value) {
+		double upperBoundLog  = log(getUpperBound());
+		double lowerBoundLog  = log(getLowerBound());
+		double logScaleLength = upperBoundLog - lowerBoundLog;
+		double valueLogOffset = log(value.doubleValue()) - lowerBoundLog;
 
-    @Override
-    public double 			getDisplayPosition(Number value) {
+		if (getSide().isVertical())
+			return (1 - valueLogOffset / logScaleLength) * getHeight();
 
-        // Consider this axis, with lower bound 1 and upper bound 1000:
-        // |1----------10---------100--------1000|
-        //
-        // Lets assume our value is 10. First, we want to get the relative position of the value between lower and upper bound.
-        // Therefore we get the logarithmic value of 10, which is 1 and subtract the logarithmic value of 1 (lower bound), which is 0.
-        // |1----------10---------100--------1000|
-        //  ^^^^^^^^^^^^
-        //
-        // Then we divide this value by total by the total length of the axis, which is log(1000) (==3) minus log(1) (==0), which is 3.
-        // |1----------10---------100--------1000|
-        //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        //
-        // We now know, that the value 10 lies on 33% of the axis.
-        // To get the actual value, we only need to multiply the percent value with the absolute length of the axis.
-        //
-        // log(a) - log(b) == log(a/b)
-        // log(a/b) is faster in Java, so we use that.
+		return (valueLogOffset / logScaleLength) * getWidth();
+	}
 
-        // Get the logarithmic difference between the value and the lower bound.
-        double diffValue = Math.log10(value.doubleValue() / currentLowerBound.get());
+	@Override
+	protected List<Number> 		calculateTickValues(double length, Object range) {
+		XY.Axis.Range rangeImpl = (XY.Axis.Range) range;
+		if (rangeImpl.lowerBound() >= rangeImpl.upperBound()) {
+			return Arrays.asList(rangeImpl.lowerBound());
+		}
+		List<Number> tickValues = new ArrayList<>();
+		double exp = Math.ceil(log(rangeImpl.lowerBound()));
+		for (double tickValue = pow(exp); tickValue <= rangeImpl.upperBound(); tickValue = pow(++exp)) {
+			tickValues.add(tickValue);
+		}
+		return tickValues;
+	}
+	@Override
+	protected List<Number> 		calculateMinorTickMarks() {
+		if (getMinorTickCount() <= 0) {
+			return Collections.emptyList();
+		}
 
-        // Get the logarithmic difference between lower and upper bound.
-        double diffTotal = Math.log10(currentUpperBound.get() / currentLowerBound.get());
+		List<Number> minorTickMarks = new ArrayList<>();
+		double lowerBound = getLowerBound();
+		double upperBound = getUpperBound();
+		double exp = Math.floor(log(lowerBound));
 
-        double percent = diffValue / diffTotal;
+		for (double majorTick = pow(exp); majorTick < upperBound; majorTick = pow(++exp)) {
+			double nextMajorTick = pow(exp + 1);
+			double minorUnit = (nextMajorTick - majorTick) / getMinorTickCount();
+			for (double minorTick = majorTick + minorUnit; minorTick < nextMajorTick; minorTick += minorUnit) {
+				if (minorTick >= lowerBound && minorTick <= upperBound) {
+					minorTickMarks.add(minorTick);
+				}
+			}
+		}
+		return minorTickMarks;
+	}
 
-        if (getSide().isHorizontal()) {
-            return percent * getWidth();
-        } else {
-            // Invert for the vertical axis.
-            return (1 - percent) * getHeight();
-        }
-    }
-    @Override
-    public Number 			getValueForDisplay(double displayPosition) {
-        if (getSide().isHorizontal()) {
-            return Math.pow(10, displayPosition / getWidth() * Math.log10(currentUpperBound.get() / currentLowerBound.get())) * currentLowerBound.get();
-        } else {
-            return Math.pow(10, ((displayPosition / getHeight()) - 1) * -Math.log10(currentUpperBound.get() / currentLowerBound.get())) * currentLowerBound.get();
-        }
-    }
+	@Override
+	protected Object 			autoRange(double minValue, double maxValue, double length, double labelSize) {
+		return computeRange(minValue, maxValue, length, labelSize);
+	}
+	@Override
+	protected XY.Axis.Range 	computeRange(double min, double max, double axisLength, double labelSize) {
+		double minRounded = min;
+		double maxRounded = max;
 
-    @Override
-    protected List<Number> 	calculateTickValues(double length, Object range) {
-        List<Number> tickValues = new ArrayList<Number>();
+		if (isAutoRanging() && isAutoRangeRounding()) {
+			minRounded = min <= 0 ? 1 : pow(Math.floor(log(min)));
+			maxRounded = pow(Math.ceil(log(max)));
+		}
+		double newScale = calculateNewScale(axisLength, minRounded, maxRounded);
+		return XY.Axis.Range.of(minRounded, maxRounded, newScale, "0.######");
+	}
 
-        final double[] rangeProps = (double[]) range;
-        final double lowerBound = rangeProps[0];
-        final double upperBound = rangeProps[1];
-        double logLowerBound = Math.log10(lowerBound);
-        double logUpperBound = Math.log10(upperBound);
+	private double 				log(double value) {
+		if (value <= 0)
+			return Double.NaN;
 
-        // Always start with a "even" integer. That's why we floor the start value.
-        // Otherwise the scale would contain odd values, rather then normal 1, 2, 3, 4, ... values.
-        for (double major = Math.floor(logLowerBound); major < logUpperBound; major++) {
-            double p = Math.pow(10, major);
-            for (double j = 1; j < 10; j++) {
-                tickValues.add(j * p);
-            }
-        }
-        return tickValues;
-    }
-    @Override
-    protected List<Number> 	calculateMinorTickMarks() {
-        final List<Number> minorTickMarks = new ArrayList<Number>();
-        double step = 1.0 / getMinorTickCount();
-        double logLowerBound = Math.log10(getLowerBound());
-        double logUpperBound = Math.log10(getUpperBound());
-
-        for (double major = Math.floor(logLowerBound); major < logUpperBound; major++) {
-            for (double j = 0; j < 10; j += step) {
-                minorTickMarks.add(j * Math.pow(10, major));
-            }
-        }
-
-        return minorTickMarks;
-    }
-
-    @Override
-    protected String 		getTickMarkLabel(Number value) {
-        return NumberFormat.getInstance().format(value);
-    }
-
-    @Override
-    protected void 			layoutChildren() {
-        if (!isAutoRanging()) {
-            currentLowerBound.set(getLowerBound());
-            currentUpperBound.set(getUpperBound());
-        }
-        super.layoutChildren();
-    }
+		return Math.log(value) / Math.log(getLogarithmBase());
+	}
+	private double 				pow(double value) {
+		return Math.pow(getLogarithmBase(), value);
+	}
 
 }

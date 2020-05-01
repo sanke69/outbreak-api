@@ -1,8 +1,5 @@
-package fr.javafx.scene.control.chart;
+package fr.javafx.scene.control.chart.plugins.behavior;
 
-import fr.java.time.Time;
-import fr.javafx.scene.control.chart.axis.InstantAxis;
-import fr.javafx.utils.EventHandlerManager;
 import javafx.event.EventHandler;
 import javafx.scene.chart.Axis;
 import javafx.scene.chart.ValueAxis;
@@ -10,7 +7,16 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
-class XYChartPanManager {
+import fr.java.time.Time;
+
+import fr.javafx.scene.control.chart.XYChartUtils;
+import fr.javafx.scene.control.chart.XY;
+import fr.javafx.scene.control.chart.XYChartUtils.XYChartInfo;
+import fr.javafx.scene.control.chart.axis.InstantAxis;
+import fr.javafx.scene.control.chart.plugins.AbstractChartPlugin;
+import fr.javafx.utils.EventHandlerManager;
+
+public class XYChartPanManager extends AbstractChartPlugin<Number, Number> {
 
 	public static final EventHandler<MouseEvent> DEFAULT_FILTER = new EventHandler<MouseEvent>() {
 		@Override
@@ -20,14 +26,14 @@ class XYChartPanManager {
 		}
 	};
 
-	private final Axis<?>      							xAxis;
-	private final ValueAxis<?> 							yAxis;
-	private final XYChartInfo  							chartInfo;
+	private  Axis<?>      							xAxis;
+	private  ValueAxis<?> 							yAxis;
+	private  XYChartUtils.XYChartInfo  							chartInfo;
 
-	private XYAxis.Constraint 							panMode = XYAxis.Constraint.NONE;
-	private XYAxis.ConstraintStrategy 					axisConstraintStrategy = XYAxis.ConstraintStrategy.normal();
+	private XY.Constraint 								panMode = XY.Constraint.NONE;
+	private XY.ConstraintStrategy 						axisConstraintStrategy = XY.ConstraintStrategy.normal();
 
-	private final EventHandlerManager 					handlerManager;
+	private  EventHandlerManager 					handlerManager;
 	private EventHandler<? super MouseEvent> 			mouseFilter = DEFAULT_FILTER;
 
 	private boolean 									dragging = false;
@@ -36,6 +42,28 @@ class XYChartPanManager {
 	private double 										lastX;
 	private double 										lastY;
 
+	
+
+    private void registerMouseHandlers() {
+//        registerMouseEventHandler(MouseEvent.MOUSE_PRESSED, panStartHandler);
+        registerMouseEventHandler(MouseEvent.DRAG_DETECTED,  me -> { if ( passesFilter( me ) ) startDrag( me ); });
+        registerMouseEventHandler(MouseEvent.MOUSE_DRAGGED,  me -> drag(me));
+        registerMouseEventHandler(MouseEvent.MOUSE_RELEASED, me -> release());
+    }
+
+	public XYChartPanManager() {
+		chartPaneProperty().addListener((_obs, _old, _new) -> {
+//          removeEventHanlders(_old);
+
+    		xAxis     = (Axis<?>)        _new.getXAxis();
+    		yAxis     = (ValueAxis<?>)   _new.getYAxis();
+    		chartInfo = new XYChartInfo( _new.getXYChart(), _new.getXYChart() );
+
+//            addEventHandlers(_new);
+        });
+		registerMouseHandlers();
+	}
+	@Deprecated
 	public XYChartPanManager(XYChart<?, ?> chart ) {
 		xAxis     = (Axis<?>)        chart.getXAxis();
 		yAxis     = (ValueAxis<?>)   chart.getYAxis();
@@ -44,13 +72,13 @@ class XYChartPanManager {
 		handlerManager = new EventHandlerManager( chart );
 		handlerManager . addEventHandler( MouseEvent.DRAG_DETECTED,  me -> { if ( passesFilter( me ) ) startDrag( me ); }, false );
 		handlerManager . addEventHandler( MouseEvent.MOUSE_DRAGGED,  me -> drag(me),                                       false );
-		handlerManager . addEventHandler( MouseEvent.MOUSE_RELEASED, me -> release(),                                       false);
+		handlerManager . addEventHandler( MouseEvent.MOUSE_RELEASED, me -> release(),                                      false );
 	}
 
-	public void 								setAxisConstraintStrategy( XYAxis.ConstraintStrategy _axisConstraintStrategy ) {
+	public void 								setAxisConstraintStrategy( XY.ConstraintStrategy _axisConstraintStrategy ) {
 		axisConstraintStrategy = _axisConstraintStrategy;
 	}
-	public XYAxis.ConstraintStrategy 			getAxisConstraintStrategy() {
+	public XY.ConstraintStrategy 				getAxisConstraintStrategy() {
 		return axisConstraintStrategy;
 	}
 
@@ -72,7 +100,7 @@ class XYChartPanManager {
 	private void 								startDrag( MouseEvent event ) {
 		panMode = axisConstraintStrategy.getConstraint( chartInfo.getContext(event.getX(), event.getY()) );
 
-		if (panMode != XYAxis.Constraint.NONE) {
+		if (panMode != XY.Constraint.NONE) {
 			lastX = event.getX();
 			lastY = event.getY();
 
@@ -91,7 +119,7 @@ class XYChartPanManager {
 		if ( !dragging )
 			return;
 
-		if ( panMode == XYAxis.Constraint.BOTH || panMode == XYAxis.Constraint.HORIZONTAL ) {
+		if ( panMode == XY.Constraint.BOTH || panMode == XY.Constraint.HORIZONTAL ) {
 			if(xAxis instanceof ValueAxis) {
 				ValueAxis<?> xAxis_ = (ValueAxis<?>) xAxis;
 				double       dX     = ( event.getX() - lastX ) / - xAxis_.getScale();
@@ -108,7 +136,7 @@ class XYChartPanManager {
 			}
 		}
 
-		if ( panMode == XYAxis.Constraint.BOTH || panMode == XYAxis.Constraint.VERTICAL ) {
+		if ( panMode == XY.Constraint.BOTH || panMode == XY.Constraint.VERTICAL ) {
 			double dY = ( event.getY() - lastY ) / -yAxis.getScale();
 			lastY = event.getY();
 			yAxis.setAutoRanging( false );

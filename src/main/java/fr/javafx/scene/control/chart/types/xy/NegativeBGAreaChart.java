@@ -1,4 +1,4 @@
-package fr.javafx.scene.control.chart.customs;
+package fr.javafx.scene.control.chart.types.xy;
 
 import java.util.ArrayList;
 import java.util.Collections;

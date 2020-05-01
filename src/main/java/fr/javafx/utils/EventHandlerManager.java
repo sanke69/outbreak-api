@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public class EventHandlerManager {
 	private final Node target;
 	private final List<Registration<? extends Event>> registrations;

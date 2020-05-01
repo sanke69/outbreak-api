@@ -28,9 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
 
-import fr.java.time.Time;
-import fr.java.time.TimeUnit;
-import fr.javafx.scene.control.chart.XYAxis;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ObjectPropertyBase;
@@ -38,14 +35,19 @@ import javafx.beans.property.SimpleLongProperty;
 import javafx.scene.chart.Axis;
 import javafx.util.StringConverter;
 
+import fr.java.time.Time;
+import fr.java.time.TimeUnit;
+
+import fr.javafx.scene.control.chart.XY;
+
 public final class InstantAxis extends Axis<Instant> {
 
 	public static Axis<Number> forLong() {
 		SimpleDateFormat format = new SimpleDateFormat( "yyyy-MM-dd" );
 		format.setTimeZone( TimeZone.getTimeZone( "GMT" ) );
 
-		NumberAxis<Number> xAxis = new NumberAxis<Number>();
-		xAxis.setAxisTickFormatter(XYAxis.TickFormatter.withFormat( format ) );
+		NumericAxis xAxis = new NumericAxis();
+//		xAxis.setAxisTickFormatter(XY.Axis.Ticks.newNumberFormat( d -> format.format(d) ) );
 		return xAxis;
 	}
 	

@@ -26,14 +26,15 @@ import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Side;
 import javafx.scene.Node;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Skin;
 import javafx.scene.layout.BorderPane;
 
-import fr.javafx.scene.control.chart.XYAxis;
-import fr.javafx.scene.control.chart.XYChartInterface;
-import fr.javafx.scene.control.chart.axis.NumberAxis;
+import fr.javafx.scene.control.chart.XY;
+import fr.javafx.scene.control.chart.XYChartPane;
+import fr.javafx.scene.control.chart.axis.NumericAxis;
 
 import fr.outbreak.api.Outbreak.Population;
 import fr.reporting.api.Report;
@@ -44,9 +45,9 @@ public class ReportTimeSeries<R extends Report, DB extends Report.DataBase<R>>
 					extends    ReportViewerBase<R, DB> 
 					implements ReportViewer.TimeSeries<R, DB> {
 	private final BorderPane                      	container;
-	private final XYChartInterface<Number,Number> 	chart;
-	private NumberAxis<Number>						x_axis;
-	private NumberAxis<Number>						y_axis;
+	private final XYChartPane<Number,Number> 		chart;
+	private NumericAxis								x_axis;
+	private NumericAxis								y_axis;
 
 	private final boolean 							useDateAxis;
 	public EnumSet<Population> 						defaultPopulations;
@@ -89,7 +90,7 @@ public class ReportTimeSeries<R extends Report, DB extends Report.DataBase<R>>
 		};
 	}
 
-	protected final NumberAxis<Number>										getXAxis() {
+	protected final NumericAxis								getXAxis() {
 		if(x_axis != null)
 			return x_axis;
 		
@@ -102,18 +103,18 @@ public class ReportTimeSeries<R extends Report, DB extends Report.DataBase<R>>
 			format = new DecimalFormat("j ###,###");
 		}
 
-		x_axis = new NumberAxis<Number>();
-		x_axis.setAxisTickFormatter(XYAxis.TickFormatter.withFormat( format ) );
+		x_axis = new NumericAxis();
+//		x_axis.setAxisTickFormatter(XY.Axis.Ticks.newFormatter( format ) );
 		x_axis.setAnimated(false);
 		x_axis.setSide(Side.BOTTOM);
 
 		return x_axis;
 	}
-	protected final NumberAxis<Number>										getYAxis() {
+	protected final NumericAxis								getYAxis() {
 		if(y_axis != null)
 			return y_axis;
 
-		y_axis = new NumberAxis<Number>();
+		y_axis = new NumericAxis();
 		y_axis . setSide(Side.LEFT);
 
 		return y_axis;
@@ -125,12 +126,12 @@ public class ReportTimeSeries<R extends Report, DB extends Report.DataBase<R>>
 
 		return container;
 	}
-	private final XYChartInterface<Number,Number>
+	private final XYChartPane<Number,Number>
 																	createChart() {
-		XYChartInterface<Number,Number> chart = XYChartInterface.newInstance(XYChartInterface.Mode.Line, getXAxis(), getYAxis());
-		chart . enablePanning(true)
-			  . enableZooming(true)
-			  . enableAutoRange(true);
+		XYChartPane<Number,Number> chart = XYChartPane.of(XY.Type.Line, getXAxis(), getYAxis());
+//		chart . enablePanning(true)
+//			  . enableZooming(true)
+//			  . enableAutoRange(true);
 
 		return chart;
 	}

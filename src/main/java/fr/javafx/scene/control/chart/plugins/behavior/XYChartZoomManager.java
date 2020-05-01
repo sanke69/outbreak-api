@@ -1,8 +1,7 @@
-package fr.javafx.scene.control.chart;
+package fr.javafx.scene.control.chart.plugins.behavior;
 
 import java.lang.reflect.InvocationTargetException;
 
-import fr.javafx.utils.EventHandlerManager;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -28,7 +27,13 @@ import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
-class XYChartZoomManager {
+import fr.javafx.scene.control.chart.XYChartUtils;
+import fr.javafx.scene.control.chart.XY;
+import fr.javafx.scene.control.chart.XYChartUtils.XYChartInfo;
+import fr.javafx.scene.control.chart.plugins.AbstractChartPlugin;
+import fr.javafx.utils.EventHandlerManager;
+
+public class XYChartZoomManager extends AbstractChartPlugin<Number, Number> {
 	public static final EventHandler<MouseEvent> DEFAULT_FILTER = me -> { if ( me.getButton() != MouseButton.PRIMARY ) me.consume(); };
 
 	private final SimpleBooleanProperty 		selecting                        = new SimpleBooleanProperty( false );
@@ -40,22 +45,62 @@ class XYChartZoomManager {
 	private final BooleanProperty 				zoomAnimated                     = new SimpleBooleanProperty( true );
 	private final BooleanProperty 				mouseWheelZoomAllowed            = new SimpleBooleanProperty( true );
 
-	private XYAxis.Constraint 					zoomMode                         = XYAxis.Constraint.NONE;
-	private XYAxis.ConstraintStrategy 			axisConstraintStrategy           = XYAxis.ConstraintStrategy.ignoreOutsideChart();
-	private XYAxis.ConstraintStrategy 			mouseWheelAxisConstraintStrategy = XYAxis.ConstraintStrategy.normal();
+	private XY.Constraint 						zoomMode                         = XY.Constraint.NONE;
+	private XY.ConstraintStrategy 				axisConstraintStrategy           = XY.ConstraintStrategy.ignoreOutsideChart();
+	private XY.ConstraintStrategy 				mouseWheelAxisConstraintStrategy = XY.ConstraintStrategy.normal();
 
 	private final EventHandlerManager 			handlerManager;
 	private EventHandler<? super MouseEvent> 	mouseFilter                      = DEFAULT_FILTER;
 
-	private final Rectangle 					selectRect;
-	private final Axis<?> 						xAxis;
-	private final DoubleProperty 				xAxisLowerBoundProperty;
-	private final DoubleProperty 				xAxisUpperBoundProperty;
-	private final Axis<?> 						yAxis;
-	private final DoubleProperty 				yAxisLowerBoundProperty;
-	private final DoubleProperty 				yAxisUpperBoundProperty;
+	private Rectangle 							selectRect;
+	private Axis<?> 							xAxis;
+	private DoubleProperty 						xAxisLowerBoundProperty;
+	private DoubleProperty 						xAxisUpperBoundProperty;
+	private Axis<?> 							yAxis;
+	private DoubleProperty 						yAxisLowerBoundProperty;
+	private DoubleProperty 						yAxisUpperBoundProperty;
 
-	private final XYChartInfo 					chartInfo;
+	private XYChartUtils.XYChartInfo 			chartInfo;
+
+    private void registerMouseHandlers() {
+		registerMouseEventHandler  ( MouseEvent.MOUSE_PRESSED,   me -> { if ( passesFilter( me ) ) onMousePressed( me ); } );
+		registerMouseEventHandler  ( MouseEvent.DRAG_DETECTED,   me -> { if ( passesFilter( me ) ) onDragStart(); } );
+		registerMouseEventHandler  ( MouseEvent.MOUSE_DRAGGED,   me -> onMouseDragged( me )  );
+		registerMouseEventHandler  ( MouseEvent.MOUSE_RELEASED,  me -> onMouseReleased() );
+
+		registerScrollEventHandler ( ScrollEvent.ANY, new MouseWheelZoomHandler() );
+    }
+
+	public XYChartZoomManager() {
+		super();
+		chartPaneProperty().addListener((_obs, _old, _new) -> {
+//          removeEventHanlders(_old);
+
+    		xAxis     = (Axis<?>)        _new.getXAxis();
+    		yAxis     = (ValueAxis<?>)   _new.getYAxis();
+    		chartInfo = new XYChartInfo( _new.getXYChart(), _new );
+
+    		selectRect = null;
+    		xAxis                   = _new.getXYChart().getXAxis();
+    		xAxisLowerBoundProperty = getLowerBoundProperty(xAxis);
+    		xAxisUpperBoundProperty = getUpperBoundProperty(xAxis);
+    		yAxis                   = _new.getXYChart().getYAxis();
+    		yAxisLowerBoundProperty = getLowerBoundProperty(yAxis);
+    		yAxisUpperBoundProperty = getUpperBoundProperty(yAxis);
+
+    		if (
+    			xAxisLowerBoundProperty == null || xAxisUpperBoundProperty == null ||
+    			yAxisLowerBoundProperty == null || yAxisUpperBoundProperty == null
+    		) {
+    			throw new IllegalArgumentException("Axis type not supported");
+    		}
+
+//            addEventHandlers(_new);
+        });
+		registerMouseHandlers();
+
+		handlerManager = null;
+	}
 
 	public <X,Y> XYChartZoomManager( Pane chartPane, Rectangle selectRect, XYChart<X,Y> chart ) {
 		this.selectRect = selectRect;
@@ -85,17 +130,17 @@ class XYChartZoomManager {
 		handlerManager.addEventHandler( ScrollEvent.ANY, new MouseWheelZoomHandler() );
 	}
 
-	public XYAxis.ConstraintStrategy 					getAxisConstraintStrategy() {
+	public XY.ConstraintStrategy 						getAxisConstraintStrategy() {
 		return axisConstraintStrategy;
 	}
-	public void 										setAxisConstraintStrategy( XYAxis.ConstraintStrategy _axisConstraintStrategy ) {
+	public void 										setAxisConstraintStrategy( XY.ConstraintStrategy _axisConstraintStrategy ) {
 		axisConstraintStrategy = _axisConstraintStrategy;
 	}
 
-	public XYAxis.ConstraintStrategy 					getMouseWheelAxisConstraintStrategy() {
+	public XY.ConstraintStrategy 						getMouseWheelAxisConstraintStrategy() {
 		return mouseWheelAxisConstraintStrategy;
 	}
-	public void 										setMouseWheelAxisConstraintStrategy( XYAxis.ConstraintStrategy _mouseWheelAxisConstraintStrategy ) {
+	public void 										setMouseWheelAxisConstraintStrategy( XY.ConstraintStrategy _mouseWheelAxisConstraintStrategy ) {
 		mouseWheelAxisConstraintStrategy = _mouseWheelAxisConstraintStrategy;
 	}
 
@@ -189,7 +234,7 @@ class XYChartZoomManager {
 		}
 	}
 	private void 										onDragStart() {
-		if ( zoomMode != XYAxis.Constraint.NONE )
+		if ( zoomMode != XY.Constraint.NONE )
 			selecting.set( true );
 	}
 	private void 										onMouseDragged( MouseEvent mouseEvent ) {
@@ -198,7 +243,7 @@ class XYChartZoomManager {
 
 		Rectangle2D plotArea = chartInfo.getPlotArea();
 
-		if ( zoomMode == XYAxis.Constraint.BOTH || zoomMode == XYAxis.Constraint.HORIZONTAL ) {
+		if ( zoomMode == XY.Constraint.BOTH || zoomMode == XY.Constraint.HORIZONTAL ) {
 			double x = mouseEvent.getX();
 			//Clamp to the selection start
 			x = Math.max( x, selectRect.getTranslateX() );
@@ -207,7 +252,7 @@ class XYChartZoomManager {
 			rectX.set( x );
 		}
 
-		if ( zoomMode == XYAxis.Constraint.BOTH || zoomMode == XYAxis.Constraint.VERTICAL ) {
+		if ( zoomMode == XY.Constraint.BOTH || zoomMode == XY.Constraint.VERTICAL ) {
 			double y = mouseEvent.getY();
 			//Clamp to the selection start
 			y = Math.max( y, selectRect.getTranslateY() );
@@ -289,8 +334,8 @@ class XYChartZoomManager {
 				double eventX = event.getX();
 				double eventY = event.getY();
 
-				XYAxis.Constraint zoomMode = mouseWheelAxisConstraintStrategy.getConstraint( chartInfo.getContext(eventX, eventY ) );
-				if ( zoomMode == XYAxis.Constraint.NONE )
+				XY.Constraint zoomMode = mouseWheelAxisConstraintStrategy.getConstraint( chartInfo.getContext(eventX, eventY ) );
+				if ( zoomMode == XY.Constraint.NONE )
 					return;
 
 				zoomAnimation.stop();
@@ -312,14 +357,14 @@ class XYChartZoomManager {
 				//If so, the 0.2 needs to be modified
 				double zoomAmount = 0.2 * direction;
 
-				if ( zoomMode == XYAxis.Constraint.BOTH || zoomMode == XYAxis.Constraint.HORIZONTAL ) {
+				if ( zoomMode == XY.Constraint.BOTH || zoomMode == XY.Constraint.HORIZONTAL ) {
 					double xZoomDelta = ( getXAxisUpperBound() - getXAxisLowerBound() ) * zoomAmount;
 					xAxis.setAutoRanging( false );
 					setXAxisLowerBound( getXAxisLowerBound() - xZoomDelta * xZoomBalance );
 					setXAxisUpperBound( getXAxisUpperBound() + xZoomDelta * ( 1 - xZoomBalance ) );
 				}
 
-				if ( zoomMode == XYAxis.Constraint.BOTH || zoomMode == XYAxis.Constraint.VERTICAL ) {
+				if ( zoomMode == XY.Constraint.BOTH || zoomMode == XY.Constraint.VERTICAL ) {
 					double yZoomDelta = ( getYAxisUpperBound() - getYAxisLowerBound() ) * zoomAmount;
 					yAxis.setAutoRanging( false );
 					setYAxisLowerBound( getYAxisLowerBound() - yZoomDelta * yZoomBalance );

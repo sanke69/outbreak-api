@@ -1,0 +1,15 @@
+.chart-plot-background {
+    -fx-background-color: null;
+}
+.chart-content {
+    -fx-background-color: null;
+}
+.chart-title {
+	visibility: hidden;
+}
+.chart-horizontal-grid-lines {
+	visibility: hidden;
+}
+.chart-vertical-grid-lines {
+	visibility: hidden;
+}
