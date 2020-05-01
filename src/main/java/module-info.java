@@ -35,7 +35,6 @@ module javafr.outbreak {
 
 	// For debug only... Eclipse issues with java modules and maven
 	exports fr.run.graphics;
-	exports fr.run.graphics.chart;
 	exports fr.run.report;
 	exports fr.run.outbreak;
 
