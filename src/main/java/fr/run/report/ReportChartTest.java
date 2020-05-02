@@ -36,14 +36,14 @@ import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Skin;
 import javafx.scene.paint.Color;
 
-import fr.javafx.scene.control.chart.XYChartPane;
-import fr.javafx.scene.control.chart.axis.NumericAxis;
-import fr.javafx.scene.control.chart.plugins.behavior.XYChartPanManager;
-import fr.javafx.scene.control.chart.plugins.behavior.XYChartZoomManager;
-import fr.javafx.scene.control.chart.plugins.indicators.XValueIndicator;
-import fr.javafx.scene.control.chart.plugins.indicators.YRangeIndicator;
-import fr.javafx.scene.control.chart.plugins.overlays.CrosshairIndicator;
-import fr.javafx.scene.control.chart.plugins.overlays.DataPointTooltip;
+import fr.javafx.scene.chart.XYChartPane;
+import fr.javafx.scene.chart.axis.NumericAxis;
+import fr.javafx.scene.chart.plugins.behavior.XYChartPanManager;
+import fr.javafx.scene.chart.plugins.behavior.XYChartZoomManager;
+import fr.javafx.scene.chart.plugins.indicators.XValueIndicator;
+import fr.javafx.scene.chart.plugins.indicators.YRangeIndicator;
+import fr.javafx.scene.chart.plugins.overlays.CrosshairIndicator;
+import fr.javafx.scene.chart.plugins.overlays.DataPointTooltip;
 
 import fr.reporting.api.Report;
 import fr.reporting.sdk.graphics.ReportStage;

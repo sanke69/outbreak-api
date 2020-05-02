@@ -13,9 +13,9 @@ module javafr.outbreak {
 	exports fr.javafx.scene.control.list;
 
 	exports fr.javafx.scene.control.slider;
-	exports fr.javafx.scene.control.chart;
-	exports fr.javafx.scene.control.chart.axis;
-	exports fr.javafx.scene.control.chart.types.xy;
+	exports fr.javafx.scene.chart;
+	exports fr.javafx.scene.chart.axis;
+	exports fr.javafx.scene.chart.types.xy;
 	exports fr.javafx.scene.layouts;
 	exports fr.javafx.scene.properties;
 	exports fr.javafx.scene;
@@ -37,5 +37,6 @@ module javafr.outbreak {
 	exports fr.run.graphics;
 	exports fr.run.report;
 	exports fr.run.outbreak;
+	exports fr.run.reporting;
 
 }

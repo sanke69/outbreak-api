@@ -23,7 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.EnumSet;
 import java.util.TimeZone;
 
-import fr.javafx.scene.control.chart.XY;
+import fr.javafx.scene.chart.XY;
 
 import fr.outbreak.api.Outbreak;
 import fr.outbreak.api.Outbreak.Population;

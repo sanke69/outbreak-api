@@ -32,9 +32,9 @@ import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Skin;
 import javafx.scene.layout.BorderPane;
 
-import fr.javafx.scene.control.chart.XY;
-import fr.javafx.scene.control.chart.XYChartPane;
-import fr.javafx.scene.control.chart.axis.NumericAxis;
+import fr.javafx.scene.chart.XY;
+import fr.javafx.scene.chart.XYChartPane;
+import fr.javafx.scene.chart.axis.NumericAxis;
 
 import fr.outbreak.api.Outbreak.Population;
 import fr.reporting.api.Report;
