@@ -85,13 +85,13 @@ public abstract class AbstractChartPlugin<X, Y> implements XY.ChartPlugin<X, Y> 
         return new Point2D(xInAxis, yInAxis);
     }
 
-    protected final Point2D 						toDisplayPoint(Axis<Y> yAxis, Data<X, Y> dataPoint) {
+    protected final Point2D 						toDisplayPoint	(Axis<Y> yAxis, Data<X, Y> dataPoint) {
         return new Point2D(
         			getChartPane().getXYChart()
         						  .getXAxis()
         						  .getDisplayPosition( dataPoint.getXValue()), yAxis.getDisplayPosition(dataPoint.getYValue()) );
     }
-    protected final Data<X, Y> 						toDataPoint(Axis<Y> yAxis, Point2D displayPoint) {
+    protected final Data<X, Y> 						toDataPoint		(Axis<Y> yAxis, Point2D displayPoint) {
         return new Data<>(
         			getChartPane().getXYChart()
         						  .getXAxis()

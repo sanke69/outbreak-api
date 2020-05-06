@@ -16,21 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */package fr.reporting.sdk.graphics.panes;
 
-import java.text.DecimalFormat;
-import java.text.Format;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
-import java.util.TimeZone;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Side;
 import javafx.scene.Node;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Skin;
-import javafx.scene.layout.BorderPane;
 
 import fr.javafx.scene.chart.XY;
 import fr.javafx.scene.chart.XYChartPane;
@@ -44,7 +41,7 @@ import fr.reporting.sdk.graphics.ReportViewerBase;
 public class ReportTimeSeries<R extends Report, DB extends Report.DataBase<R>> 
 					extends    ReportViewerBase<R, DB> 
 					implements ReportViewer.TimeSeries<R, DB> {
-	private final BorderPane                      	container;
+
 	private final XYChartPane<Number,Number> 		chart;
 	private NumericAxis								x_axis;
 	private NumericAxis								y_axis;
@@ -63,16 +60,14 @@ public class ReportTimeSeries<R extends Report, DB extends Report.DataBase<R>>
 	}
 	public ReportTimeSeries(String _title, boolean _useDateAxis) {
 		super(_title);
-
-		chart              = createChart();
-		container          = createContainer();
-
 		useDateAxis        = _useDateAxis;
 		defaultPopulations = EnumSet.allOf(Population.class);
+
+		chart              = createChart();
 	}
 
 	@Override
-	public XYChart<Number,Number> 									getXYChart()											{ return chart.getXYChart(); }
+	public XYChartPane<Number,Number> 								getChartPane()											{ return chart; }
 
 	@Override
     public ObservableList<Series<Number,Number>> 					getData() 												{ return chart.dataProperty().get(); }
@@ -84,54 +79,47 @@ public class ReportTimeSeries<R extends Report, DB extends Report.DataBase<R>>
 	@Override
 	protected Skin<? extends ReportTimeSeries<R, DB>> 				createDefaultSkin() {
 		return new Skin<ReportTimeSeries<R, DB>>() {
-			@Override public ReportTimeSeries<R, DB> getSkinnable() 	{ return ReportTimeSeries.this; }
-			@Override public Node getNode() 						{ return container; }
+			@Override public ReportTimeSeries<R, DB> getSkinnable() { return ReportTimeSeries.this; }
+			@Override public Node getNode() 						{ return chart; }
 			@Override public void dispose() 						{  }
 		};
 	}
 
-	protected final NumericAxis								getXAxis() {
+	protected final NumericAxis					getXAxis() {
 		if(x_axis != null)
 			return x_axis;
 		
-		Format format = null;
+		XY.Axis.Ticks.Formatter<Number> tickLabeller = null;
 		if(useDateAxis) {
-			format = new SimpleDateFormat( "yyyy-MM-dd" );
-
-			((SimpleDateFormat) format) . setTimeZone( TimeZone.getTimeZone( "GMT" ) );
+			tickLabeller = XY.newNumberFormat(t -> {
+				LocalDate ld = Instant.ofEpochMilli(t.longValue()).atZone(ZoneId.systemDefault()).toLocalDate();
+				return    ld . format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+			});
 		} else {
-			format = new DecimalFormat("j ###,###");
+			tickLabeller = XY.newNumberFormat("j. ", null);
 		}
 
 		x_axis = new NumericAxis();
-//		x_axis.setAxisTickFormatter(XY.Axis.Ticks.newFormatter( format ) );
-		x_axis.setAnimated(false);
-		x_axis.setSide(Side.BOTTOM);
+		x_axis . setAnimated(false);
+		x_axis . setSide(Side.BOTTOM);
+		x_axis . setForceZeroInRange(false);
+		x_axis . setTickLabelFormatter(tickLabeller);
 
 		return x_axis;
 	}
-	protected final NumericAxis								getYAxis() {
+	protected final NumericAxis					getYAxis() {
 		if(y_axis != null)
 			return y_axis;
 
 		y_axis = new NumericAxis();
+		y_axis . setAnimated(false);
 		y_axis . setSide(Side.LEFT);
 
 		return y_axis;
 	}
 
-	private final BorderPane										createContainer() {
-		BorderPane container = new BorderPane(chart.getNode(),null,null,null,null);
-		container.setStyle("-fx-background-color: gray;");
-
-		return container;
-	}
-	private final XYChartPane<Number,Number>
-																	createChart() {
+	private final XYChartPane<Number,Number>	createChart() {
 		XYChartPane<Number,Number> chart = XYChartPane.of(XY.Type.Line, getXAxis(), getYAxis());
-//		chart . enablePanning(true)
-//			  . enableZooming(true)
-//			  . enableAutoRange(true);
 
 		return chart;
 	}

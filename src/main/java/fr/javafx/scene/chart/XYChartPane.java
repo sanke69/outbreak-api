@@ -11,11 +11,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -53,11 +50,10 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.TilePane;
-import javafx.scene.paint.Color;
 
 public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
-	private static final String CHART_CSS = XYChartPane.class.getResource("chart.css").toExternalForm();
-	private static final String OVERLAY_CHART_CSS = XYChartPane.class.getResource("overlay-chart.css").toExternalForm();
+	private static final String CHART_CSS         = XYChartPane.class.getResource("chart.css").toExternalForm();
+	private static final String CHART_OVERLAY_CSS = XYChartPane.class.getResource("chart-overlay.css").toExternalForm();
 
 	private final XYChart<X, Y> 									baseChart;
 
@@ -83,7 +79,7 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 	};
 
 	private final Label         									titleLabel            = new Label();
-	private final Legend        									legend                = new Legend();
+	private final LegendPane        								legend                = new LegendPane();
 
 	boolean 														layoutOngoing         = false;
 	private final ChangeListener<Boolean> 							layoutRequestListener = (_obs, _old, needsLayout) -> { if(needsLayout && !layoutOngoing) requestLayout(); };
@@ -106,6 +102,8 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 									});
 	}
 
+	final XYChartStyle<X,Y> styles;
+
 	public XYChartPane(XYChart<X, Y> chart) {
 		baseChart = requireNonNull(chart, "The chart must not be null");
 		XYChartUtils.getChartContent(baseChart).needsLayoutProperty().addListener(layoutRequestListener);
@@ -121,6 +119,8 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 		legend.visibleProperty().bind(legendVisibleProperty());
 
 		getChildren().addAll(baseChart, overlayChartsArea, pluginsArea, titleLabel, legend);
+
+		styles = new XYChartStyle<X,Y>( getXYChart() );
 	}
 
 	public final Node 													getNode() {
@@ -178,9 +178,9 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 		return localToChartPane(node, new Point2D(0, 0));
 	}
 	Point2D 															localToChartPane(Node node, Point2D point) {
-		if (this.equals(node) || node.getParent() == null) {
+		if (this.equals(node) || node.getParent() == null)
 			return point;
-		}
+
 		return localToChartPane(node.getParent(), node.localToParent(point));
 	}
 
@@ -196,7 +196,7 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 		return new BoundingBox(bounds.getMinX() - plotAreaBounds.getMinX(), bounds.getMinY() - plotAreaBounds.getMinY(),
 				bounds.getWidth(), bounds.getHeight());
 	}
-
+/*
 	@Deprecated
 	public final void 													enableAxisAutoRanging() {
 		enableXAxisAutoRanging();
@@ -213,7 +213,7 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 			getOverlayCharts().forEach(chart -> chart.getYAxis().setAutoRanging(true));
 		}
 	}
-
+*/
     @Override public String 											getTitle() 										{ return titleLabel.getText(); }   // { return baseChart.getTitle(); }
 	@Override public void 												setTitle(String value) 							{ titleLabel.setText(value); } // { baseChart.setTitle(value); }
 	@Override public StringProperty 									titleProperty() 								{ return titleLabel.textProperty(); } // { return baseChart.titleProperty(); }
@@ -262,99 +262,20 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
     @Override public void 												setHorizontalZeroLineVisible(boolean value) 	{ baseChart.setHorizontalZeroLineVisible(value); }
     @Override public BooleanProperty 									horizontalZeroLineVisibleProperty() 			{ return baseChart.horizontalZeroLineVisibleProperty(); }
 	
-    @Override public List<CssMetaData<? extends Styleable, ?>> 			getCssMetaData() 								{ return baseChart.getCssMetaData(); }
+//    @Override public List<CssMetaData<? extends Styleable, ?>> 			getCssMetaData() 								{ return baseChart.getCssMetaData(); }
 	
     @Override public Axis<X> 											getXAxis() 										{ return baseChart.getXAxis(); }
 	@Override public Axis<Y> 											getYAxis() 										{ return baseChart.getYAxis(); }
-
-
-
-	public void 	setStyle(XYChart.Series<?, ?> _series, Color _lineColor, Integer _lineWidth, String _shape, Color _inColor, Color _outColor, Color _fillColor) {
-		Function<Color, String> colorConverter = c -> _lineColor != null
-				? String.format(Locale.ROOT, "rgba(%d, %d, %d, %.2f)", (int) (c.getRed() * 255),
-						(int) (c.getGreen() * 255), (int) (c.getBlue() * 255), c.getOpacity())
-				: null;
-
-		String line_color = "-fx-stroke: %s; ";
-		String line_width = "-fx-stroke-width: %spt; ";
-		String pin_color = "-fx-background-color: %s, %s; ";
-		String pin_shape = "-fx-shape: \"%s\"; ";
-		String area_color = "-fx-fill: %s; ";
-		String legend_color = "-fx-background-color: %s, %s; ";
-
-		StringBuilder lineStyle = new StringBuilder();
-		if (_lineColor != null)
-			lineStyle.append(String.format(line_color, colorConverter.apply(_lineColor)));
-		if (_lineWidth != null)
-			lineStyle.append(String.format(line_width, _lineWidth));
-
-		StringBuilder pinStyle = new StringBuilder();
-		if (_shape != null)
-			pinStyle.append(String.format(pin_shape, _shape));
-		if (_inColor != null && _outColor != null)
-			pinStyle.append(String.format(pin_color, colorConverter.apply(_inColor), colorConverter.apply(_outColor)));
-
-		StringBuilder areaStyle = new StringBuilder();
-		if (_lineColor != null)
-			areaStyle.append(String.format(area_color, colorConverter.apply(_fillColor)));
-
-		StringBuilder legendStyle = new StringBuilder();
-		if (_lineColor != null)
-			legendStyle.append(
-					String.format(legend_color, colorConverter.apply(_inColor), colorConverter.apply(_outColor)));
-		else if (_inColor != null && _outColor != null)
-			legendStyle.append(
-					String.format(legend_color, colorConverter.apply(_inColor), colorConverter.apply(_outColor)));
-
-		String chartClass = baseChart.getClass().getSimpleName();
-		switch (chartClass) {
-		case "ScatterChart":
-			setSymbolStyle(_series, ".chart-symbol", pinStyle.toString());
-			setLegendStyle(_series, ".chart-legend-item", legendStyle.toString());
-			break;
-		case "LineChart":
-			setSymbolStyle(_series, ".chart-line-symbol", pinStyle.toString());
-			setLineStyle(_series, ".chart-series-line", lineStyle.toString());
-			setLegendStyle(_series, ".chart-legend-item", legendStyle.toString());
-			break;
-		case "StackedAreaChart":
-		case "AreaChart":
-			setSymbolStyle(_series, ".chart-area-symbol", pinStyle.toString());
-			setLineStyle(_series, ".chart-series-area-line", lineStyle.toString());
-			setAreaStyle(_series, ".chart-series-area-fill", areaStyle.toString());
-			break;
-		default:
-			break;
-		}
-
-	}
-	private void 	setSymbolStyle(XYChart.Series<?, ?> _series, String _lookup, String _style) {
-		_series.getData().stream()
-						 .map(data -> data.getNode().lookup(_lookup))
-						 .forEach(symbol -> symbol.setStyle(_style));
-	}
-	private void 	setLineStyle(XYChart.Series<?, ?> _series, String _lookup, String _style) {
-		_series.getNode().lookup(_lookup).setStyle(_style.toString());
-	}
-	private void 	setAreaStyle(XYChart.Series<?, ?> _series, String _lookup, String _style) {
-		_series.getNode().lookup(_lookup).setStyle(_style.toString());
-	}
-	private void 	setLegendStyle(XYChart.Series<?, ?> _series, String _lookup, String _style) {
-		Set<Node> items = baseChart.lookupAll("Label.chart-legend-item");
-
-		for (int i = 0; i < items.size(); ++i) {
-			;
-		}
-
-//    	_series.getNode().lookup(_lookup) . setStyle(_style.toString());
-	}
-
-	
 
 	private static Side 												getEffectiveVerticalSide(Axis<?> axis) {
 		return axis.getSide().isVertical() ? axis.getSide() : LEFT;
 	}
 
+
+	public void 														setStyle(XYChart.Series<X, Y> _series, XY.Series.Style _style) {
+		styles.styles.put(_series, _style);
+	}
+	
 	// Internal Pane Layout Methods
 	@Override
 	protected void 														layoutChildren() {
@@ -396,7 +317,7 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 	}
 
 	private void 														applyOverlayStyle(XYChart<?, ?> chart) {
-		chart.getStylesheets().add(OVERLAY_CHART_CSS);
+		chart.getStylesheets().add(CHART_OVERLAY_CSS);
 		chart.setTitle(null);
 	}
 	private void 														makeTransparentToMouseEventsExceptPlotContent(XYChart<?, ?> chart) {
@@ -719,11 +640,11 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 
 	}
 
-	private static class Legend extends TilePane {
+	private static class LegendPane extends TilePane {
 		private static final String CHART_LEGEND_CSS = "chart-legend";
 		private static final int    GAP = 5;
 
-		Legend() {
+		LegendPane() {
 			super(GAP, GAP);
 
 			setTileAlignment(Pos.CENTER_LEFT);
@@ -816,8 +737,6 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 		private static class StylelessBorderPane extends BorderPane {
 			@Override
 			public List<CssMetaData<? extends Styleable, ?>> getCssMetaData() {
-				// We don't want styles configured for the chart-legend or chart to be applied
-				// on this pane
 				return Collections.emptyList();
 			}
 		}

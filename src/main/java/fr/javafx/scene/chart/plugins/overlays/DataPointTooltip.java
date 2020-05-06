@@ -4,58 +4,141 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.event.EventHandler;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
+import javafx.scene.chart.Axis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Pair;
+import javafx.util.StringConverter;
 
+import fr.javafx.scene.chart.XY;
+import fr.javafx.scene.chart.XYChartUtils;
 import fr.javafx.scene.chart.plugins.AbstractDataFormattingPlugin;
 
 public class DataPointTooltip<X, Y> extends AbstractDataFormattingPlugin<X, Y> {
 	public static final String STYLE_CLASS_LABEL = "chart-datapoint-tooltip-label";
 
-	public static final int DEFAULT_PICKING_DISTANCE = 5;
+	public class DataPoint {
+		final  Series<X, Y>  series;
+		final  Data<X, Y>    data;
+		double               distanceFromMouse;
 
+		DataPoint(Series<X, Y> _series, Data<X, Y> _data) {
+			super();
+
+			series = _series;
+			data   = _data;
+		}
+
+	}
+
+	public final BiFunction<Series<X, Y>, Pair<X, Y>, String> DEFAULT_LABEL_UPDATER    = (s, pt) -> {
+		Axis<X> xAxis = s.getChart().getXAxis();
+		Axis<Y> yAxis = s.getChart().getYAxis();
+
+		StringConverter<X>      xValueFormatter;
+		StringConverter<Number> xNumberFormatter;
+        if(XYChartUtils.Axes.isValueAxis(xAxis))
+        	xNumberFormatter = (StringConverter<Number>) XYChartUtils.Axes.toValueAxis(xAxis).getTickLabelFormatter();
+        else if(xAxis instanceof XY.Axis xAxisXY)
+        	xValueFormatter  = null;
+
+		StringConverter<Y>      yValueFormatter;
+		StringConverter<Number> yNumberFormatter;
+        if(XYChartUtils.Axes.isValueAxis(yAxis))
+        	yNumberFormatter = (StringConverter<Number>) XYChartUtils.Axes.toValueAxis(yAxis).getTickLabelFormatter();
+
+		
+		
+		
+		
+		
+		StringBuilder sb = new StringBuilder();
+
+		sb  . append( s.getName() )
+			. append("\n");
+
+		StringConverter<?> scX = null;
+
+		return sb.toString();
+	};
+	public static final double 								DEFAULT_PICKING_DISTANCE = 5d;
+
+	
+	private <T> StringConverter<T> 					getValueFormatter(Axis<T> axis, StringConverter<T> formatter, StringConverter<T> defaultFormatter) {
+        StringConverter<T> valueFormatter = formatter;
+
+        if (valueFormatter == null && XYChartUtils.Axes.isValueAxis(axis))
+            valueFormatter = (StringConverter<T>) XYChartUtils.Axes.toValueAxis(axis).getTickLabelFormatter();
+
+        if (valueFormatter == null)
+            valueFormatter = defaultFormatter;
+
+        return valueFormatter;
+    }
+	
+	
+	
 	private static final int LABEL_X_OFFSET = 15;
 	private static final int LABEL_Y_OFFSET = 5;
 
-	private final Label label = new Label();
-
-	private final DoubleProperty 			pickingDistance = new SimpleDoubleProperty(this, "pickingDistance", DEFAULT_PICKING_DISTANCE) {
-		@Override
-		protected void invalidated() {
-			if (get() <= 0)
-				throw new IllegalArgumentException("The " + getName() + " must be a positive value");
-		}
-	};
-
-	private final EventHandler<MouseEvent> 	mouseMoveHandler = (MouseEvent event) -> updateToolTip(event);
+	private final Label 										label;
+	private final ObjectProperty<Function<DataPoint, String>> 	labelUpdater;
+	private final DoubleProperty 								pickingDistance;
 
 	public DataPointTooltip() {
-		label.getStyleClass().add(STYLE_CLASS_LABEL);
-		registerMouseEventHandler(MouseEvent.MOUSE_MOVED, mouseMoveHandler);
+		this(DEFAULT_PICKING_DISTANCE, null);
 	}
-	public DataPointTooltip(double pickingDistance) {
-		this();
-		setPickingDistance(pickingDistance);
+	public DataPointTooltip(double _pickingDistance) {
+		this(_pickingDistance, null);
+	}
+	public DataPointTooltip(double _pickingDistance, Function<DataPoint, String> _labelUpdater) {
+		super();
+
+		labelUpdater    = new SimpleObjectProperty<Function<DataPoint, String>>(_labelUpdater);
+		pickingDistance = new SimpleDoubleProperty(this, "pickingDistance", _pickingDistance) {
+			@Override
+			protected void invalidated() {
+				if (get() <= 0)
+					throw new IllegalArgumentException("The " + getName() + " must be a positive value");
+			}
+		};
+
+		label = new Label();
+		label . getStyleClass().add(STYLE_CLASS_LABEL);
+
+		registerMouseEventHandler(MouseEvent.MOUSE_MOVED, this::updateToolTip);
 	}
 
-	public final void 						setPickingDistance(double distance) {
+	public final void 												setLabelUpdater(Function<DataPoint, String> _labelUpdater) {
+		labelUpdater.set(_labelUpdater);
+	}
+	public final Function<DataPoint, String> 					getLabelUpdater() {
+		return labelUpdater.get();
+	}
+	public final ObjectProperty<Function<DataPoint, String>> 	labelUpdaterProperty() {
+		return labelUpdater;
+	}
+
+	public final void 												setPickingDistance(double distance) {
 		pickingDistance.set(distance);
 	}
-	public final double 					getPickingDistance() {
+	public final double 											getPickingDistance() {
 		return pickingDistance.get();
 	}
-	public final DoubleProperty 			pickingDistanceProperty() {
+	public final DoubleProperty 									pickingDistanceProperty() {
 		return pickingDistance;
 	}
 
@@ -67,19 +150,25 @@ public class DataPointTooltip<X, Y> extends AbstractDataFormattingPlugin<X, Y> {
 			getChartChildren().remove(label);
 			return;
 		}
+
 		updateLabel(event, plotAreaBounds, dataPoint);
+
 		if (!getChartChildren().contains(label)) {
 			getChartChildren().add(label);
 			label.requestLayout();
 		}
 	}
 	private void 							updateLabel(MouseEvent event, Bounds plotAreaBounds, DataPoint dataPoint) {
-		label.setText(dataPoint.series.getName() + "\n" + formatDataPoint(dataPoint));
+		if(labelUpdater != null) {
+			label.setText(dataPoint.series.getName() + "\n" + formatDataPoint(dataPoint));
+			
+		} else 
+			label.setText(dataPoint.series.getName() + "\n" + formatDataPoint(dataPoint));
 
-		double mouseX = event.getX();
-		double mouseY = event.getY();
-		double width  = label.prefWidth(-1);
-		double height = label.prefHeight(width);
+		double mouseX    = event.getX();
+		double mouseY    = event.getY();
+		double width     = label.prefWidth(-1);
+		double height    = label.prefHeight(width);
 
 		double xLocation = mouseX + LABEL_X_OFFSET;
 		double yLocation = mouseY - LABEL_Y_OFFSET - height;
@@ -192,20 +281,6 @@ public class DataPointTooltip<X, Y> extends AbstractDataFormattingPlugin<X, Y> {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private List<Data<? extends Number, Y>> castXToNumber(Series series) {
 		return series.getData();
-	}
-
-	private class DataPoint {
-		final  Series<X, Y> series;
-		final  Data<X, Y>   data;
-		double distanceFromMouse;
-
-		DataPoint(Series<X, Y> _series, Data<X, Y> _data) {
-			super();
-
-			series = _series;
-			data   = _data;
-		}
-
 	}
 
 }

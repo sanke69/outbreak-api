@@ -18,16 +18,21 @@
 
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.chart.XYChart.Series;
+import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 
 import fr.javafx.scene.PropertyEditors;
 import fr.javafx.scene.PropertyListControl;
+import fr.javafx.scene.chart.XY;
 import fr.javafx.scene.properties.SelecterMulti;
 import fr.javafx.scene.properties.SelecterSingle;
 
@@ -42,6 +47,17 @@ public class OutbreakTimeSeriesOptionsBasics extends ReportViewerOptions<Outbrea
 	private final SelecterSingle<Country> 			  countrySelecter;
 	private final SelecterMulti<Outbreak.Population>  curveSelecter;
 
+	static final Map<Population, XY.Series.Style> map;
+	static {
+		map = new HashMap<Population, XY.Series.Style>();
+		map . put( Population.Infected,  new XY.Series.Style(Color.RED,   5d, XY.Symbols.cross.path(), Color.RED,   Color.RED,   Color.RED) );
+		map . put( Population.Dead,      new XY.Series.Style(Color.BLACK, 5d, XY.Symbols.cross.path(), Color.BLACK, Color.BLACK, Color.BLACK) );
+		map . put( Population.Recovered, new XY.Series.Style(Color.GREEN, 5d, XY.Symbols.cross.path(), Color.GREEN, Color.GREEN, Color.GREEN) );
+		map . put( Population.Immuned,   new XY.Series.Style(Color.BLUE,  5d, XY.Symbols.cross.path(), Color.BLUE,  Color.BLUE,  Color.BLUE) );
+	}
+	
+	
+	
 	public OutbreakTimeSeriesOptionsBasics() {
 		super();
 		curveSelecter = PropertyEditors.newMultiSelecter(EnumSet.of(Population.Infected, Population.Dead));
@@ -77,8 +93,11 @@ public class OutbreakTimeSeriesOptionsBasics extends ReportViewerOptions<Outbrea
 			c_series = new OutbreakSeries( country.getName(), _charts.getDatabase().getReports(type, r -> r.getCountry().equals(country)) );
 
 			_charts.getData().clear();
-			for(Population p : population)
-				_charts.getData().add( c_series.getData(p) );
+			for(Population p : population) {
+				Series<Number, Number> series = c_series.getData(p);
+				_charts.getChartPane().getData().add( series );
+				_charts.getChartPane().setStyle( series, map.get(p) );
+			}
 		};
 
 		selectedCountryProperty() . addListener((_obs, _old, _new) -> update.run());

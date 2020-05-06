@@ -1,40 +1,51 @@
+/**
+ * JavaFR
+ * Copyright (C) 2007-?XYZ  Steve PECHBERTI <steve.pechberti@laposte.net>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package fr.javafx.scene.chart.plugins.behavior;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
-import javafx.event.EventTarget;
 import javafx.event.EventType;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
-import javafx.scene.chart.ValueAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
-import javafx.util.Duration;
 
 import fr.javafx.scene.chart.XY;
 import fr.javafx.scene.chart.XYChartUtils;
-import fr.javafx.scene.chart.plugins.AbstractChartPlugin;
 import fr.javafx.utils.MouseEvents;
 
-public class SelectionRegion extends AbstractBehaviorPlugin<Number, Number> {
+public class ChartSelecter extends AbstractBehaviorPlugin<Number, Number> {
     public static final String 						STYLE_CLASS_SELECTION_RECT		= "chart-selection-rect";
     public static final Predicate<MouseEvent> 		DEFAULT_SELECTION_MOUSE_FILTER	= event -> MouseEvents.isOnlyPrimaryButtonDown(event) && MouseEvents.modifierKeysUp(event);
     public static final int 						DEFAULT_SELECTION_MIN_SIZE		= 3;
@@ -49,7 +60,7 @@ public class SelectionRegion extends AbstractBehaviorPlugin<Number, Number> {
         	}
         }
     };
-    private final BooleanProperty 					selectionRemaining 				= new SimpleBooleanProperty(true);
+    private final BooleanProperty 					selectionRemaining 				= new SimpleBooleanProperty(false);
 
     private final Rectangle 						selectionRectangle 				= new Rectangle();
     private Point2D 								selectionStartPoint 			= null;
@@ -57,10 +68,10 @@ public class SelectionRegion extends AbstractBehaviorPlugin<Number, Number> {
 
     private Paint 									originalPaint;
 
-    public SelectionRegion() {
+    public ChartSelecter() {
         this(XY.Constraint.BOTH);
     }
-    public SelectionRegion(XY.Constraint _mode) {
+    public ChartSelecter(XY.Constraint _mode) {
     	super(_mode, Cursor.CROSSHAIR);
 
     	interactionModeProperty().addListener((im) -> {
@@ -76,17 +87,14 @@ public class SelectionRegion extends AbstractBehaviorPlugin<Number, Number> {
         registerMouseEventHandler(MouseEvent.MOUSE_PRESSED,  this::onMousePressed);
         registerMouseEventHandler(MouseEvent.MOUSE_DRAGGED,  this::onMouseDragged);
         registerMouseEventHandler(MouseEvent.MOUSE_RELEASED, this::onMouseReleased);
+       
+    }
+    public ChartSelecter(XY.Constraint _mode, Predicate<MouseEvent> _filter, BiConsumer<XYChart<?, ?>, Rectangle2D> _onSelection) {
+    	this(_mode);
 
-        addEventHandler(XY.ON_SELECTION, se -> {
-        	StringBuilder sb = new StringBuilder();
+    	setMouseFilter(_filter);
 
-        	sb.append("Chart: " + se.getChart() + '\n');
-        	sb.append("    R: ( " + se.getSelection().getMinX() + ", " + se.getSelection().getMinY() +  ", " + se.getSelection().getMaxX() +  ", " + se.getSelection().getMaxY() + " )\n");
-        	
-        	System.out.println(sb.toString());
-        	
-        	ChartZoomer.performZoom(se.getChart(), se.getSelection(), XY.Constraint.BOTH);
-        });        
+        addEventHandler(XY.ON_SELECTION, se -> _onSelection.accept(se.getChart(), se.getSelection())); 
     }
 
     public final void 									setSelectionMode(XY.Constraint mode) {
@@ -112,16 +120,7 @@ public class SelectionRegion extends AbstractBehaviorPlugin<Number, Number> {
     public final <T extends Event> void 				addEventHandler(final EventType<T> eventType, final EventHandler<? super T> eventHandler) {
     	selectionRectangle.addEventHandler(eventType, eventHandler);
     }
-    public final <T extends Event> void 				removeEventHandler(final EventType<T> eventType, final EventHandler<? super T> eventHandler) {
-    	selectionRectangle.removeEventHandler(eventType, eventHandler);
-    }
-    public final <T extends Event> void 				addEventFilter(final EventType<T> eventType, final EventHandler<? super T> eventFilter) {
-    	selectionRectangle.addEventFilter(eventType, eventFilter);
-    }
-    public final <T extends Event> void 				removeEventFilter(final EventType<T> eventType, final EventHandler<? super T> eventFilter) {
-    	selectionRectangle.removeEventFilter(eventType, eventFilter);
-    }
-    
+
     private void 										onMousePressed(MouseEvent _me) {
         if (getMouseFilter() != null && !getMouseFilter().test(_me))
         	return ;
@@ -152,7 +151,7 @@ public class SelectionRegion extends AbstractBehaviorPlugin<Number, Number> {
         double selectionRectWidth  = plotAreaBounds.getWidth();
         double selectionRectHeight = plotAreaBounds.getHeight();
 
-        selectionEndPoint = limitToPlotArea(_me, plotAreaBounds);
+        selectionEndPoint = XYChartUtils.limitToPlotArea(getChartPane(), _me);
 
         if(getSelectionMode().allowsHor()) {
             selectionRectX      = Math.min(selectionStartPoint.getX(), selectionEndPoint.getX());
@@ -220,13 +219,6 @@ public class SelectionRegion extends AbstractBehaviorPlugin<Number, Number> {
     }
     private void 										performSelectionOn(XYChart<Number, Number> _chart, Rectangle2D _selection) {
     	selectionRectangle.fireEvent(new XY.SelectionEvent(_chart, _selection));
-    }
-
-   
-    private Point2D 									limitToPlotArea(MouseEvent event, Bounds plotBounds) {
-        double limitedX = Math.max(Math.min(event.getX(), plotBounds.getMaxX()), plotBounds.getMinX());
-        double limitedY = Math.max(Math.min(event.getY(), plotBounds.getMaxY()), plotBounds.getMinY());
-        return new Point2D(limitedX, limitedY);
     }
 
 }

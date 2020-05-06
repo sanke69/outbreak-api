@@ -16,6 +16,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 
 import fr.javafx.scene.chart.XY;
+import fr.javafx.scene.chart.XY.Axis.Ticks.Formatter;
 
 public abstract class XYValueAxis extends ValueAxis<Number> implements XY.Axis<Number> {
     private static final int RANGE_ANIMATION_DURATION_MS = 700;
@@ -23,8 +24,6 @@ public abstract class XYValueAxis extends ValueAxis<Number> implements XY.Axis<N
     private final Timeline         					animator           = new Timeline();
 
     ObjectProperty<XY.Axis.Ticks.UnitSupplier> 		tickUnitSupplierProperty = new SimpleObjectProperty<XY.Axis.Ticks.UnitSupplier>();
-    ObjectProperty<XY.Axis.Ticks.Formatter<Number>> tickFormatterProperty    = new SimpleObjectProperty<XY.Axis.Ticks.Formatter<Number>>();
-    private final XY.Axis.Ticks.Formatter<Number> 	defaultFormatter         = XY.Axis.Ticks.defaultFormatter();
 
     private final DoubleProperty   					scaleBinding       = new SimpleDoubleProperty(this, "scaleBinding", getScale()) { @Override protected void invalidated() { setScale(get()); } };
     private final BooleanProperty  					autoRangeRounding  = new SimpleBooleanProperty(true);
@@ -62,15 +61,20 @@ public abstract class XYValueAxis extends ValueAxis<Number> implements XY.Axis<N
 		return tickUnitSupplierProperty;
 	}
 	
-	public void 											setTickFormatter(XY.Axis.Ticks.Formatter<Number> _axisTickFormatter) {
-		tickFormatterProperty.set( _axisTickFormatter );
+	public void 											setTickLabelFormatter(XY.Axis.Ticks.Formatter<Number> _axisTickFormatter) {
+		super.setTickLabelFormatter( (StringConverter<Number>) _axisTickFormatter );
 	}
-	public XY.Axis.Ticks.Formatter<Number> 					getTickFormatter() {
-		return tickFormatterProperty.get();
+	public XY.Axis.Ticks.Formatter<Number> 					getTickLabelFormatterXY() {
+		StringConverter<Number> tickConverter = getTickLabelFormatter();
+		
+		if(tickConverter instanceof XY.Axis.Ticks.Formatter)
+			return (XY.Axis.Ticks.Formatter<Number>) tickConverter; 
+		
+		return null;
 	}
 	@Override
-	public ObjectProperty<XY.Axis.Ticks.Formatter<Number>> 	tickFormatterProperty() {
-		return tickFormatterProperty;
+	public ObjectProperty<Formatter<Number>>				tickLabelFormatterPropertyXY() {
+		return null;
 	}
 
     @Override
@@ -106,32 +110,33 @@ public abstract class XYValueAxis extends ValueAxis<Number> implements XY.Axis<N
 
     @Override
     protected String 										getTickMarkLabel(Number value) {
-        StringConverter<Number> formatter = getTickLabelFormatter();
-        if (formatter == null) {
-            formatter = defaultFormatter;
-        }
-        return formatter.toString(value);
+    	XY.Axis.Ticks.Formatter<Number> formatter = getTickLabelFormatterXY();
+    	if(formatter != null)
+            return formatter.toString(value);
+
+        StringConverter<Number> converter = getTickLabelFormatter();
+        if (converter == null)
+        	converter = XY.defaultNumberFormatter();
+
+        return converter.toString(value);
     }
 
     @Override
     protected Dimension2D 									measureTickMarkSize(Number value, Object _range) {
         String labelText;
-
+/*
     	if(_range instanceof XY.Axis.Range range) {
     		String tickFormat = range.tickFormat();
     		
     		// TBC ...
     	}
-
+*/
         StringConverter<Number> formatter = getTickLabelFormatter();
         if (formatter == null)
-            formatter = defaultFormatter;
+            formatter = XY.defaultNumberFormatter();
 
-    	if(formatter instanceof XY.Axis.Ticks.Formatter ) {
-        	XY.Axis.Ticks.Formatter<Number>
-        	ticksFormatter = (XY.Axis.Ticks.Formatter<Number>) formatter;
-
-            labelText = ticksFormatter.toString(value);
+    	if(formatter instanceof XY.Axis.Ticks.Formatter<?> tickFormatter) {
+            labelText = tickFormatter.numberToString(value);
         } else
             labelText = formatter.toString(value);
 
@@ -141,11 +146,10 @@ public abstract class XYValueAxis extends ValueAxis<Number> implements XY.Axis<N
     private void 											bindToBounds() {
         ChangeListener<Number> rangeUpdater = (obj, oldValue, newValue) -> {
             if (!isAutoRanging()) {
-                if (getLowerBound() <= getUpperBound()) {
+                if (getLowerBound() <= getUpperBound())
                     setRange(computeRange(), false);
-                } else {
+                else
                     throw new IllegalArgumentException("lowerBound [" + getLowerBound() + "] must not be greater than upperBound [" + getUpperBound() + "]");
-                }
             }
         };
 
@@ -154,9 +158,9 @@ public abstract class XYValueAxis extends ValueAxis<Number> implements XY.Axis<N
     }
 
     private XY.Axis.Range 									computeRange() {
-        if (getSide() == null) {
+        if (getSide() == null)
             return getRange();
-        }
+
         double length = getSide().isVertical() ? getHeight() : getWidth();
         double labelSize = getTickLabelFont().getSize() * 2;
         return computeRange(getLowerBound(), getUpperBound(), length, labelSize);

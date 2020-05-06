@@ -3,8 +3,6 @@ module javafr.outbreak {
 	requires transitive javafx.controls;
 	requires javafx.base;
 
-//	requires org.scenicview.scenicview;
-
 	// Required exports from my other APIs - COULD EASILY BE REMOVED !!!
 	exports fr.geodesic.referential.api.countries;
 

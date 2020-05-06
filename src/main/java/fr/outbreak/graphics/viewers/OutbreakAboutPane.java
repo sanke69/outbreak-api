@@ -17,7 +17,10 @@
  */
 package fr.outbreak.graphics.viewers;
 
+import javafx.beans.value.ObservableValue;
+
 import fr.outbreak.api.Outbreak;
+import fr.outbreak.api.Outbreak.Report;
 import fr.reporting.sdk.graphics.panes.ReportAboutPane;
 
 public class OutbreakAboutPane extends ReportAboutPane<Outbreak.Report, Outbreak.DataBase> {
@@ -27,16 +30,25 @@ public class OutbreakAboutPane extends ReportAboutPane<Outbreak.Report, Outbreak
     }
     public OutbreakAboutPane(String _title) {
     	super(_title);
-    	
-    	databaseProperty().getValue();
-    	
+
+    	databaseProperty().addListener(this::onPropertyChange);
+    	onPropertyChange(null, null, null);
+    }
+
+    public <T> void onPropertyChange(ObservableValue<? extends T> _obs, T _old, T _new) {
+    	Outbreak.DataBase db = databaseProperty().get();
+
     	StringBuilder sb = new StringBuilder();
     	sb.append( getAboutPrefix() );
-		sb.append("          Database is loaded..." + "\n");
-//		sb.append("          " + _new.getReports(Report.Type.Variation).size() + " records found." + "\n");
-		sb.append("          " + 369 + " records found." + "\n");
-//		sb.append("            from " + _new.getPeriod().from() + " to " + _new.getPeriod().to() + "\n");
-//		sb.append("            for " + _new.getIndicators(Report.Type.Variation, r -> r.getCountry(), true).size() + " countries" + "\n");
+    	
+    	if(db == null) {
+			sb.append("          Database is loading..." + "\n");
+    	} else {
+			sb.append("          Database is loaded." + "\n");
+			sb.append("          " + db.getReports(Report.Type.Variation).size() + " records found." + "\n");
+			sb.append("            from " + db.getPeriod().from() + " to " + db.getPeriod().to() + "\n");
+			sb.append("            for " + db.getIndicators(Report.Type.Variation, r -> r.getCountry(), true).size() + " countries" + "\n");
+    	}
 
     	textProperty().set( sb.toString() );
     }

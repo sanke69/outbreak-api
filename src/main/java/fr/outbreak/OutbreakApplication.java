@@ -51,7 +51,7 @@ public interface OutbreakApplication {
     		return databaseProperty;
     	}
 
-    	public final Stage 						getPrimaryStage() {
+    	public final Stage 								getPrimaryStage() {
     		if(stage != null)
     			return stage;
 

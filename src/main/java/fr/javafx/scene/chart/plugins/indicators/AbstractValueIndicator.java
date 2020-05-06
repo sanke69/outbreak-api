@@ -3,7 +3,7 @@ package fr.javafx.scene.chart.plugins.indicators;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.geometry.Bounds;
@@ -19,33 +19,27 @@ import fr.javafx.scene.chart.plugins.AbstractChartPlugin;
 
 public abstract class AbstractValueIndicator<X, Y> extends AbstractChartPlugin<X, Y> {
 
-    private final ObjectProperty<HPos> 	labelHorizontalAnchor = new SimpleObjectProperty<HPos>(this, "labelHorizontalAnchor", HPos.CENTER) {
-        @Override
-        protected void invalidated() {
-            layoutChildren();
-        }
-    };
-    private final ObjectProperty<VPos> 	labelVerticalAnchor   = new SimpleObjectProperty<VPos>(this, "labelVerticalAnchor", VPos.CENTER) {
-        @Override
-        protected void invalidated() {
-            layoutChildren();
-        }
-    };
+    private final ObjectProperty<HPos> 	labelHorizontalAnchor;
+    private final ObjectProperty<VPos> 	labelVerticalAnchor;
 
-	protected final Label 				label = new Label();
-
-    private final ChangeListener<? super Number> 
-    									axisBoundsListener    = (_obs, _old, _new) -> layoutChildren();
+	protected final Label 				label;
 
     private final ListChangeListener<? super XY.ChartPlugin<?, ?>> 
     									pluginsListListener   = (Change<? extends XY.ChartPlugin<?, ?>> change) -> updateStyleClass();
+
+    final <T> void 						handleAndLayoutChildren(ObservableValue<? extends T> _obs, T _old, T _new) { layoutChildren(); }
 
     protected AbstractValueIndicator() {
         this(null);
     }
     protected AbstractValueIndicator(String _text) {
-        setText(_text);
-        label.setMouseTransparent(true);
+    	super();
+
+    	labelHorizontalAnchor = new SimpleObjectProperty<HPos>(HPos.CENTER);
+    	labelVerticalAnchor   = new SimpleObjectProperty<VPos>(VPos.CENTER);
+
+        label = new Label(_text);
+        label . setMouseTransparent(true);
 
         chartPaneProperty().addListener((_obs, _old, _new) -> {
             if (_old != null) {
@@ -58,7 +52,9 @@ public abstract class AbstractValueIndicator<X, Y> extends AbstractChartPlugin<X
             }
         });
 
-        textProperty().addListener((_obs, _old, _new) -> layoutChildren());
+        labelHorizontalAnchorProperty() . addListener(this::handleAndLayoutChildren);
+        labelVerticalAnchorProperty()   . addListener(this::handleAndLayoutChildren);
+        textProperty()                  . addListener(this::handleAndLayoutChildren);
     }
 
     public final void 					setLabelHorizontalAnchor(HPos _anchor) {
@@ -123,13 +119,13 @@ public abstract class AbstractValueIndicator<X, Y> extends AbstractChartPlugin<X
 
     private void 						addAxisListener(XYChartPane<X, Y> _chartPane) {
         ValueAxis<?> valueAxis = getValueAxis(_chartPane);
-        valueAxis.lowerBoundProperty().addListener(axisBoundsListener);
-        valueAxis.upperBoundProperty().addListener(axisBoundsListener);
+        valueAxis.lowerBoundProperty().addListener(this::handleAndLayoutChildren);
+        valueAxis.upperBoundProperty().addListener(this::handleAndLayoutChildren);
     }
     private void 						removeAxisListener(XYChartPane<X, Y> _chartPane) {
         ValueAxis<?> valueAxis = getValueAxis(_chartPane);
-        valueAxis.lowerBoundProperty().removeListener(axisBoundsListener);
-        valueAxis.upperBoundProperty().removeListener(axisBoundsListener);
+        valueAxis.lowerBoundProperty().removeListener(this::handleAndLayoutChildren);
+        valueAxis.upperBoundProperty().removeListener(this::handleAndLayoutChildren);
     }
 
     private void 						addPluginsListListener(XYChartPane<X, Y> _chartPane) {

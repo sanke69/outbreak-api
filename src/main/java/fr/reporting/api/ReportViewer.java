@@ -24,12 +24,13 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
-import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Labeled;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+
+import fr.javafx.scene.chart.XYChartPane;
 
 import fr.geodesic.referential.api.countries.Country;
 
@@ -43,7 +44,7 @@ public interface ReportViewer<R extends Report, DB extends Report.DataBase<R>> {
 
 	}
 	public interface TimeSeries <R extends Report, DB extends Report.DataBase<R>>         extends Chart<R, DB> {
-		public XYChart<Number, Number> 									getXYChart();
+		public XYChartPane<Number, Number> 								getChartPane();
 
 	    public ObservableList<Series<Number,Number>> 					getData();
 	    public void 													setData(ObservableList<Series<Number,Number>> _values);

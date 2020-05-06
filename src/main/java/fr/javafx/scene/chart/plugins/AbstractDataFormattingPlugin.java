@@ -78,12 +78,12 @@ public abstract class AbstractDataFormattingPlugin<X, Y> extends AbstractChartPl
     @SuppressWarnings("unchecked")
     private static <T> StringConverter<T> 			createDefaultFormatter(Axis<T> axis) {
         if (axis instanceof XYValueAxis)
-            return XY.Axis.Ticks.defaultFormatter();
+            return (StringConverter<T>) XY.defaultNumberFormatter();
 
         if (axis instanceof NumberAxis)
-            return (StringConverter<T>) XY.Axis.Ticks.defaultNumberFormatter();
+            return (StringConverter<T>) XY.defaultNumberFormatter();
 
-        return (StringConverter<T>) XY.Axis.Ticks.defaultFormatter();
+        return (StringConverter<T>) XY.defaultFormatter();
     }
 
 }

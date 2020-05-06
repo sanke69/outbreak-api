@@ -6,13 +6,15 @@ import java.util.Collections;
 import java.util.List;
 
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 
 import fr.javafx.scene.chart.XY;
+import fr.javafx.scene.chart.XY.Axis.Ticks.Formatter;
 
 public final class LogarithmicAxis extends XYValueAxis {
 	private static final int DEFAULT_LOGARITHM_BASE = 10;
-	private static final int DEFAULT_TICK_COUNT = 9;
+	private static final int DEFAULT_TICK_COUNT     = 9;
 
 	private final DoubleProperty logarithmBase = new SimpleDoubleProperty(LogarithmicAxis.this, "logarithmBase",
 			DEFAULT_LOGARITHM_BASE) {

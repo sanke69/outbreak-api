@@ -7,22 +7,24 @@ import java.util.List;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Dimension2D;
 
 import fr.javafx.scene.chart.XY;
+import fr.javafx.scene.chart.XY.Axis.Ticks.Formatter;
 
 public final class NumericAxis extends XYValueAxis {
 
     private static final int 						TICK_MARK_GAP = 6;
     private static final double 					NEXT_TICK_UNIT_FACTOR = 1.01;
     private static final int 						MAX_TICK_COUNT = 20;
-    private static final XY.Axis.Ticks.UnitSupplier DEFAULT_TICK_UNIT_SUPPLIER = XY.Axis.Ticks.defaultUnitSupplier();
+    private static final XY.Axis.Ticks.UnitSupplier DEFAULT_TICK_UNIT_SUPPLIER = XY.defaultTickUnitSupplier();
     private static final int 						DEFAULT_RANGE_LENGTH = 2;
     private static final double 					DEFAULT_RANGE_PADDING = 0.1;
 
-    private final BooleanProperty 								forceZeroInRange = new SimpleBooleanProperty(this, "forceZeroInRange", true) {
+    private final BooleanProperty 					forceZeroInRange = new SimpleBooleanProperty(this, "forceZeroInRange", true) {
         @Override
         protected void invalidated() {
             if (isAutoRanging()) {
@@ -31,9 +33,8 @@ public final class NumericAxis extends XYValueAxis {
             }
         }
     };
-    private final DoubleProperty 								autoRangePadding = new SimpleDoubleProperty(0);
-
-    private final DoubleProperty 								tickUnit         = new SimpleDoubleProperty(this, "tickUnit", 5d) {
+    private final DoubleProperty 					autoRangePadding = new SimpleDoubleProperty(0);
+    private final DoubleProperty 					tickUnit         = new SimpleDoubleProperty(this, "tickUnit", 5d) {
         @Override
         protected void invalidated() {
             if (!isAutoRanging()) {
@@ -51,9 +52,8 @@ public final class NumericAxis extends XYValueAxis {
     }
 
     public NumericAxis() {
-        //
+    	super();
     }
-
     public NumericAxis(double lowerBound, double upperBound, double tickUnit) {
         this(null, lowerBound, upperBound, tickUnit);
     }
@@ -90,6 +90,10 @@ public final class NumericAxis extends XYValueAxis {
     public DoubleProperty 								tickUnitProperty() {
         return tickUnit;
     }
+	@Override
+	public ObjectProperty<Formatter<Number>> 			tickLabelFormatterPropertyXY() {
+		return null;
+	}
 
     @Override
     protected void 										setRange(Object range, boolean animate) {
@@ -246,17 +250,17 @@ public final class NumericAxis extends XYValueAxis {
     private static String 								computeTickNumFormat(double tickUnit) {
         int log10 = (int) Math.floor(Math.log10(tickUnit));
         boolean unitHasFraction = Math.rint(tickUnit) != tickUnit;
-        if (log10 >= 1 && !unitHasFraction) {
+        if (log10 >= 1 && !unitHasFraction)
             return "#,##0";
-        }
+
         int fractDigitsCount = unitHasFraction ? Math.abs(log10) + 1 : Math.abs(log10);
         StringBuilder format = new StringBuilder("0");
-        if (fractDigitsCount > 0) {
+        if (fractDigitsCount > 0)
             format.append('.');
-        }
-        for (int i = 0; i < fractDigitsCount; i++) {
+
+        for (int i = 0; i < fractDigitsCount; i++)
             format.append('0');
-        }
+
         return format.toString();
     }
 

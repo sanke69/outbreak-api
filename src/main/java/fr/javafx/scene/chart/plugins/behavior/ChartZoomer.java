@@ -1,226 +1,69 @@
+/**
+ * JavaFR
+ * Copyright (C) 2007-?XYZ  Steve PECHBERTI <steve.pechberti@laposte.net>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package fr.javafx.scene.chart.plugins.behavior;
-
-import java.lang.reflect.InvocationTargetException;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.chart.Axis;
 import javafx.scene.chart.ValueAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.util.Duration;
 
 import fr.javafx.scene.chart.XY;
 import fr.javafx.scene.chart.XYChartUtils;
-import fr.javafx.scene.chart.XYChartUtils.XYChartInfo;
-import fr.javafx.scene.chart.plugins.AbstractChartPlugin;
 
-public class ChartZoomer extends AbstractChartPlugin<Number, Number> {
-	public static final EventHandler<MouseEvent> DEFAULT_FILTER = me -> { if ( me.getButton() != MouseButton.PRIMARY ) me.consume(); };
+public class ChartZoomer extends AbstractBehaviorPlugin<Number, Number> {
 
-//	private XY.ConstraintStrategy 				axisConstraintStrategy           = XY.ConstraintStrategy.ignoreOutsideChart();
-	private XY.ConstraintStrategy 				mouseWheelAxisConstraintStrategy = XY.ConstraintStrategy.normal();
-
-	private EventHandler<? super MouseEvent> 	mouseFilter                      = me -> { if ( me.getButton() != MouseButton.PRIMARY ) me.consume(); };
-
-	private Axis<?> 							xAxis;
-	private DoubleProperty 						xAxisLowerBoundProperty;
-	private DoubleProperty 						xAxisUpperBoundProperty;
-	private Axis<?> 							yAxis;
-	private DoubleProperty 						yAxisLowerBoundProperty;
-	private DoubleProperty 						yAxisUpperBoundProperty;
-
-	private XYChartUtils.XYChartInfo 			chartInfo;
+	private XY.ConstraintStrategy constraintStrategy = XY.ConstraintStrategy.normal();
 
 	public ChartZoomer() {
 		super();
-		chartPaneProperty().addListener((_obs, _old, _new) -> {
-    		xAxis     = (Axis<?>)        _new.getXAxis();
-    		yAxis     = (ValueAxis<?>)   _new.getYAxis();
-    		chartInfo = new XYChartInfo( _new.getXYChart(), _new );
-
-    		xAxis                   = _new.getXYChart().getXAxis();
-    		xAxisLowerBoundProperty = getLowerBoundProperty(xAxis);
-    		xAxisUpperBoundProperty = getUpperBoundProperty(xAxis);
-    		yAxis                   = _new.getXYChart().getYAxis();
-    		yAxisLowerBoundProperty = getLowerBoundProperty(yAxis);
-    		yAxisUpperBoundProperty = getUpperBoundProperty(yAxis);
-
-    		if (
-    			xAxisLowerBoundProperty == null || xAxisUpperBoundProperty == null ||
-    			yAxisLowerBoundProperty == null || yAxisUpperBoundProperty == null
-    		) {
-    			throw new IllegalArgumentException("Axis type not supported");
-    		}
-        });
-
 		registerScrollEventHandler ( ScrollEvent.ANY, this::onMouseScroll );
 	}
 
-	public EventHandler<? super MouseEvent> 			getMouseFilter() {
-		return mouseFilter;
-	}
-	public void 										setMouseFilter( EventHandler<? super MouseEvent> _mouseFilter ) {
-		mouseFilter = _mouseFilter;
-	}
-
-	public void onMouseScroll( ScrollEvent event ) {
+	public void 			onMouseScroll( ScrollEvent event ) {
 		EventType<? extends Event> eventType = event.getEventType();
-		if ( eventType == ScrollEvent.SCROLL_STARTED ) {
-			//mouse wheel events never send SCROLL_STARTED
 
-		} else if ( eventType == ScrollEvent.SCROLL_FINISHED ) {
-			//end non-mouse wheel event
-
-		} else if ( eventType == ScrollEvent.SCROLL && !event.isInertia() && event.getDeltaY() != 0 && event.getTouchCount() == 0 ) {
+		if ( eventType == ScrollEvent.SCROLL && !event.isInertia() && event.getDeltaY() != 0 && event.getTouchCount() == 0 ) {
 			double eventX = event.getX();
 			double eventY = event.getY();
 
-			XY.Constraint zoomMode = mouseWheelAxisConstraintStrategy.getConstraint( chartInfo.getContext(eventX, eventY ) );
+			XY.Constraint zoomMode = constraintStrategy.getConstraint( XYChartUtils.getContext(getChartPane(), eventX, eventY) );
 			if( zoomMode == XY.Constraint.NONE )
 				return;
 
-			Point2D dataCoords  = chartInfo.getDataCoordinates( eventX, eventY );
-
-			double xZoomBalance = getBalance( dataCoords.getX(), getXAxisLowerBound(), getXAxisUpperBound() );
-			double yZoomBalance = getBalance( dataCoords.getY(), getYAxisLowerBound(), getYAxisUpperBound() );
-
-			double direction   = -Math.signum( event.getDeltaY() );
-			double zoomAmount  = 0.2 * direction;
-
-			if( zoomMode.allowsHor() ) {
-				double xZoomDelta = ( getXAxisUpperBound() - getXAxisLowerBound() ) * zoomAmount;
-
-				xAxis.setAutoRanging( false );
-				setXAxisLowerBound( getXAxisLowerBound() - xZoomDelta * xZoomBalance );
-				setXAxisUpperBound( getXAxisUpperBound() + xZoomDelta * ( 1 - xZoomBalance ) );
-			}
+			if( zoomMode.allowsHor() )
+				performZoomX(getChartPane().getXYChart(), eventX, eventY, event.getDeltaY());
 
 			if( zoomMode.allowsVer() ) {
-				double yZoomDelta = ( getYAxisUpperBound() - getYAxisLowerBound() ) * zoomAmount;
-
-				yAxis.setAutoRanging( false );
-				setYAxisLowerBound( getYAxisLowerBound() - yZoomDelta * yZoomBalance );
-				setYAxisUpperBound( getYAxisUpperBound() + yZoomDelta * ( 1 - yZoomBalance ) );
+				performZoomY(getChartPane().getXYChart(), eventX, eventY, event.getDeltaY());
+				if(!getChartPane().isCommonYAxis())
+					getChartPane().getOverlayCharts().forEach(chart -> performZoomY(chart, eventX, eventY, event.getDeltaY()));
 			}
 		}
 	}
 
-	private void 										setXAxisLowerBound(double _value) {
-		xAxisLowerBoundProperty.set(_value);
-	}
-	private double 										getXAxisLowerBound() {
-		return xAxisLowerBoundProperty.get();
-	}
-
-	private void 										setXAxisUpperBound(double _value) {
-		xAxisUpperBoundProperty.set(_value);
-	}
-	private double 										getXAxisUpperBound() {
-		return xAxisUpperBoundProperty.get();
-	}
-
-	private void 										setYAxisLowerBound(double _value) {
-		yAxisLowerBoundProperty.set(_value);
-	}
-	private double 										getYAxisLowerBound() {
-		return yAxisLowerBoundProperty.get();
-	}
-
-	private void 										setYAxisUpperBound(double _value) {
-		yAxisUpperBoundProperty.set(_value);
-	}
-	private double 										getYAxisUpperBound() {
-		return yAxisUpperBoundProperty.get();
-	}
-
-	private static double 								getBalance( double val, double min, double max ) {
-		if ( val <= min )
-			return 0.0;
-		else if ( val >= max )
-			return 1.0;
-
-		return (val - min) / (max - min);
-	}
-
-	private static <T> DoubleProperty 					getLowerBoundProperty( Axis<T> axis ) {
-		return axis instanceof ValueAxis ?
-				((ValueAxis<?>) axis).lowerBoundProperty() :
-				toDoubleProperty(axis, ChartZoomer.<T>getProperty(axis, "lowerBoundProperty") );
-	}
-	private static <T> DoubleProperty 					getUpperBoundProperty( Axis<T> axis ) {
-		return axis instanceof ValueAxis ?
-				((ValueAxis<?>) axis).upperBoundProperty() :
-				toDoubleProperty(axis, ChartZoomer.<T>getProperty(axis, "upperBoundProperty") );
-	}
-	private static <T> DoubleProperty 					toDoubleProperty( final Axis<T> axis, final Property<T> property ) {
-		final ChangeListener<Number>[] doubleChangeListenerAry = new ChangeListener[1];
-		final ChangeListener<T>[] realValListenerAry = new ChangeListener[1];
-
-		final DoubleProperty result = new SimpleDoubleProperty() {
-			/** Retain references so that they're not garbage collected. */
-			private final Object[] listeners = new Object[] {
-				doubleChangeListenerAry, realValListenerAry
-			};
-		};
-
-		doubleChangeListenerAry[0] = new ChangeListener<Number>() {
-			@Override
-			public void changed( ObservableValue<? extends Number> observable, Number oldValue, Number newValue ) {
-				property.removeListener( realValListenerAry[0] );
-				property.setValue( axis.toRealValue(
-						newValue == null ? null : newValue.doubleValue() )
-				);
-				property.addListener( realValListenerAry[0] );
-			}
-		};
-		result.addListener(doubleChangeListenerAry[0]);
-
-		realValListenerAry[0] = new ChangeListener<T>() {
-			@Override
-			public void changed( ObservableValue<? extends T> observable, T oldValue, T newValue ) {
-				result.removeListener( doubleChangeListenerAry[0] );
-				result.setValue( axis.toNumericValue( newValue ) );
-				result.addListener( doubleChangeListenerAry[0] );
-			}
-		};
-		property.addListener(realValListenerAry[0]);
-
-		return result;
-	}
-
-	@SuppressWarnings( "unchecked" )
-	private static <T> Property<T> 						getProperty( Object object, String method ) {
-		try {
-			Object result = object.getClass().getMethod(method).invoke(object);
-			return result instanceof Property ? (Property<T>) result : null;
-		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored ) {}
-
-		return null;
-	}
-
-	
-	
-	
-	
-	
-
-    public static void 									performZoom(XYChart<Number, Number> chart, Rectangle2D zoomWindow, XY.Constraint _mode) {
+    public static void 		performZoom(XYChart<?, ?> chart, Rectangle2D zoomWindow, XY.Constraint _mode) {
     	boolean  isAnimated = false;
     	Duration getZoomDuration = Duration.millis(500);
    
@@ -263,6 +106,40 @@ public class ChartZoomer extends AbstractChartPlugin<Number, Number> {
             }
         }
     }
-	
-	
+    public final void		performZoomX(XYChart<Number, Number> _chart, double _x_anchor, double _y_anchor, double _factor) {
+		Point2D dataCoords   = XYChartUtils.getDataCoordinates( getChartPane(), _chart, _x_anchor, _y_anchor );
+		double  xMin         = XYChartUtils.Axes.getLowerBound( _chart.getXAxis() );
+		double  xMax         = XYChartUtils.Axes.getUpperBound( _chart.getXAxis() );
+
+		double  xZoomBalance = getBalance( dataCoords.getX(), xMin, xMax );
+		double  zoomAmount   = - 0.2 * Math.signum( _factor );
+		double  xZoomDelta   = ( xMax - xMin ) * zoomAmount;
+
+		_chart.getXAxis().setAutoRanging( false );
+		XYChartUtils.Axes.setLowerBound( _chart.getXAxis(), xMin - xZoomDelta * xZoomBalance );
+		XYChartUtils.Axes.setUpperBound( _chart.getXAxis(), xMax + xZoomDelta * ( 1d - xZoomBalance ) );
+    }
+    public final void		performZoomY(XYChart<Number, Number> _chart, double _x_anchor, double _y_anchor, double _factor) {
+		Point2D dataCoords   = XYChartUtils.getDataCoordinates( getChartPane(), _chart, _x_anchor, _y_anchor );
+		double  yMin         = XYChartUtils.Axes.getLowerBound( _chart.getYAxis() );
+		double  yMax         = XYChartUtils.Axes.getUpperBound( _chart.getYAxis() );
+
+		double  yZoomBalance = getBalance( dataCoords.getY(), yMin, yMax );
+		double  zoomAmount   = - 0.2 * Math.signum( _factor );
+		double  yZoomDelta   = ( yMax - yMin ) * zoomAmount;
+
+		_chart.getYAxis().setAutoRanging( false );
+		XYChartUtils.Axes.setLowerBound( _chart.getYAxis(), yMin - yZoomDelta * yZoomBalance );
+		XYChartUtils.Axes.setUpperBound( _chart.getYAxis(), yMax + yZoomDelta * ( 1d - yZoomBalance ) );
+    }
+
+	private static double 	getBalance( double val, double min, double max ) {
+		if ( val <= min )
+			return 0.0;
+		else if ( val >= max )
+			return 1.0;
+
+		return (val - min) / (max - min);
+	}
+
 }
