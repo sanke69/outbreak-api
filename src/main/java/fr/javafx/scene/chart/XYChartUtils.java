@@ -301,6 +301,7 @@ public final class XYChartUtils {
         return (Chart) node;
     }
 
+    @Deprecated
     static List<Label> getChildLabels(List<? extends Parent> parents) {
         List<Label> labels = new LinkedList<>();
         for (Parent parent : parents) {

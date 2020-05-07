@@ -656,6 +656,7 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 				getChildren().clear();
 
 				for(Label item : legendItems)
+//					getChildren().add(item);
 					getChildren().add(clone(item));
 			}
 		}
