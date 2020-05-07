@@ -1,40 +1,45 @@
+/**
+ * JavaFR
+ * Copyright (C) 2007-?XYZ  Steve PECHBERTI <steve.pechberti@laposte.net>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package fr.javafx.scene.chart;
 
-import static java.util.stream.Collectors.toList;
+import static fr.javafx.scene.chart.XYChartPane.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
-import javafx.application.Platform;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Series;
-import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 
 public class XYChartStyle<X, Y> {
-	public static final String SCATTER_SYMBOL = ".chart-symbol";
-	public static final String LINE_SYMBOL    = ".chart-line-symbol";
-	public static final String LINE_SEGMENT   = ".chart-series-line";
-	public static final String AREA_SYMBOL    = ".chart-area-symbol";
-	public static final String AREA_SEGMENT   = ".chart-series-area-line";
-	public static final String AREA_REGION    = ".chart-series-area-fill";
-	public static final String LEGEND_SYMBOL  = ".chart-legend-item";
-	public static final String BUBBLE_CHART   = ".chart-bubble";
-	public static final String BAR_CHART      = ".chart-bar";
-	public static final String PIE_CHART      = ".chart-pie";
-	public static final String DEFAULT_COLOR  = ".default-color";
+	public static final boolean USE_CSS_FILE  = false;
+
 
 	record Entry(String name, int index, XY.Series.Style style) { };
 	
@@ -43,57 +48,49 @@ public class XYChartStyle<X, Y> {
 	}
 
 	XYChart<X, Y> 								chart;
-	String 										attachedCSS;
-	MapProperty<Series<X, Y>, Integer>  		indexes;
 	MapProperty<Series<X, Y>, XY.Series.Style>  styles;
+
+	String 										attachedCSS;
 
 	XYChartStyle(XYChart<X, Y> _chart) {
 		super();
 		chart   = _chart;
-		indexes = new SimpleMapProperty<>(FXCollections.observableMap(new HashMap<>()));
 		styles  = new SimpleMapProperty<>(FXCollections.observableMap(new HashMap<>()));
-
-		chart.getStylesheets().add( attachedCSS = toTemporaryCssFile(attachedCSS, new XY.Series.Style[10]) ); 
 
 		chart.getData() . addListener(this::handleSeriesChange);
 		styles			. addListener(this::handleStylesChange);
+
+		if(USE_CSS_FILE)
+			chart.getStylesheets().add( attachedCSS = toTemporaryCssFile(attachedCSS, new XY.Series.Style[10]) ); 
+
 		update();
 	}
 
 	void handleSeriesChange(ListChangeListener.Change<? extends Series<X, Y>> _changes) {
 		while(_changes.next()) {
-			if(_changes.wasAdded()) {
-				for(Series<X, Y> newSeries : _changes.getAddedSubList()) {
-
-					String          name  = newSeries.getName();
-					int             index = toDefaultColorIndex(newSeries);
-					
-					indexes.put(newSeries, index);
-					System.out.println("added index: " + index);
-				}
-			} else if(_changes.wasRemoved()) {
+			if(_changes.wasRemoved()) {
 				for(Series<X, Y> oldSeries : _changes.getRemoved()) {
-
-					String          name  = oldSeries.getName();
-					int             index = toDefaultColorIndex(oldSeries);
-
-					indexes.remove(oldSeries);
 					styles.remove(oldSeries);
-					System.out.println("remove index: " + index);
 				}
 			}
+//			else if(_changes.wasAdded()) {
+//				for(Series<X, Y> newSeries : _changes.getAddedSubList()) {
+//					;
+//				}
+//			}
 		}
 		
 		update();
 	}
 	void handleStylesChange(MapChangeListener.Change<? extends Series<X, Y>, ? extends XY.Series.Style> changes) {
-		System.out.println("Styles updated...");
 		update();
 	}
 
 	void update() {
-//		updateCss();
-		updateStyles();
+		if(USE_CSS_FILE)
+			updateCss();
+		else
+			updateStyles();
 	}
 
 	void updateCss() {
@@ -123,10 +120,34 @@ public class XYChartStyle<X, Y> {
 		}
 	}
 
-    // To Update Node styles
 	void updateStyle(Series<X,Y> _series, XY.Series.Style _style) {
-		int position = toDefaultColorIndex ( _series );
+		// Update each Node on Line...
+		for(int index = 0; index<_series.getData().size(); index++){
+    	    XYChart.Data<X, Y> dataPoint = _series.getData().get(index);
 
+    		for(String symbol : Arrays.asList(SCATTER_SYMBOL, LINE_SYMBOL, AREA_SYMBOL, LEGEND_SYMBOL)) {
+        	    Node nodeSymbol = dataPoint.getNode().lookup(symbol);
+
+    			if(nodeSymbol != null)
+    				nodeSymbol.setStyle(symbolStyle(_style));
+    		}
+    	}
+    	_series.getNode().setStyle(symbolStyle(_style) + lineStyle(_style));
+    	
+    	// Update each Node on Legend...
+    	Pane
+    	legend = (Pane) _series.getChart().lookup(LEGEND);
+		legend . getChildrenUnmodifiable()
+			    .stream()
+			    .filter(n -> n instanceof Label)
+			    .map(n -> (Label) n)
+			    .filter(n -> n.getText().compareTo(_series.getName()) == 0)
+			    .forEach(l -> l.getGraphic().setStyle(symbolStyle(_style)));
+
+	}
+	void updateStyleOld(Series<X,Y> _series, XY.Series.Style _style) {
+		int position = toDefaultColorIndex ( _series );
+/*
 		for(String symbol : Arrays.asList(SCATTER_SYMBOL, LINE_SYMBOL, AREA_SYMBOL, LEGEND_SYMBOL)) {
 			Node nl  = chart.lookup(DEFAULT_COLOR + position + symbol);
 
@@ -156,7 +177,7 @@ public class XYChartStyle<X, Y> {
 		specials  = chart.lookup(DEFAULT_COLOR + position + PIE_CHART);
 		if(specials != null)
 			specials.setStyle(pieStyle(_style));
-
+*/
 		// Update each Node on Line...
 		for(int index = 0; index<_series.getData().size(); index++){
     	    XYChart.Data<X, Y> dataPoint = _series.getData().get(index);
@@ -171,23 +192,19 @@ public class XYChartStyle<X, Y> {
     	_series.getNode().setStyle(symbolStyle(_style) + lineStyle(_style));
     	
     	// Update each Node on Legend...
-    	Pane legend = XYChartUtils.getLegend(_series.getChart());
-    	
-    	
+    	Pane legend = (Pane) _series.getChart().lookup(LEGEND);
+
 		legend.getChildrenUnmodifiable()
 			    .stream()
 			    .filter(n -> n instanceof Label)
 			    .map(n -> (Label) n)
 			    .forEach(l -> {
-			    	System.out.println("update legends");
 			    	l.setStyle(symbolStyle(_style));
 			    	l.getGraphic().setStyle(symbolStyle(_style));
+			    	System.out.println("update legends\t" + l);
+			    	System.out.println("              \t" + l.getStyle());
 			    });
-				
-				
-				//XYChartUtils.getChildLabels(allLegends);
-    	
-    	
+
 	}
 
     // To write CSS
@@ -244,11 +261,11 @@ public class XYChartStyle<X, Y> {
 	int    toDefaultColorIndex(Series<X, Y> _series) {
 		String defaultColor = _series.getNode().getStyleClass()
 											   .stream()
-											   .filter(cls -> cls.contains("default-color"))
+											   .filter(cls -> cls.contains(DEFAULT_COLOR.substring(1)))
 											   .findAny().orElse(null);
 
 		if( defaultColor != null )
-			return Integer.parseInt( defaultColor.substring("default-color".length()) );
+			return Integer.parseInt( defaultColor.substring(DEFAULT_COLOR.substring(1).length()) );
 		return -1;
 	}
 

@@ -50,10 +50,10 @@ public class OutbreakTimeSeriesOptionsBasics extends ReportViewerOptions<Outbrea
 	static final Map<Population, XY.Series.Style> map;
 	static {
 		map = new HashMap<Population, XY.Series.Style>();
-		map . put( Population.Infected,  new XY.Series.Style(Color.RED,   5d, XY.Symbols.cross.path(), Color.RED,   Color.RED,   Color.RED) );
-		map . put( Population.Dead,      new XY.Series.Style(Color.BLACK, 5d, XY.Symbols.cross.path(), Color.BLACK, Color.BLACK, Color.BLACK) );
-		map . put( Population.Recovered, new XY.Series.Style(Color.GREEN, 5d, XY.Symbols.cross.path(), Color.GREEN, Color.GREEN, Color.GREEN) );
-		map . put( Population.Immuned,   new XY.Series.Style(Color.BLUE,  5d, XY.Symbols.cross.path(), Color.BLUE,  Color.BLUE,  Color.BLUE) );
+		map . put( Population.Infected,  new XY.Series.Style(Color.RED,   1d, XY.Symbols.triangle.path(), Color.RED,   Color.RED,   Color.RED) );
+		map . put( Population.Dead,      new XY.Series.Style(Color.BLACK, 1d, XY.Symbols.cross.path(), Color.BLACK, Color.BLACK, Color.BLACK) );
+		map . put( Population.Recovered, new XY.Series.Style(Color.GREEN, 1d, XY.Symbols.cross.path(), Color.GREEN, Color.GREEN, Color.GREEN) );
+		map . put( Population.Immuned,   new XY.Series.Style(Color.BLUE,  1d, XY.Symbols.cross.path(), Color.BLUE,  Color.BLUE,  Color.BLUE) );
 	}
 	
 	

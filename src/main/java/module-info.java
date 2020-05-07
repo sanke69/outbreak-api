@@ -35,6 +35,5 @@ module javafr.outbreak {
 	exports fr.run.graphics;
 	exports fr.run.report;
 	exports fr.run.outbreak;
-	exports fr.run.reporting;
 
 }

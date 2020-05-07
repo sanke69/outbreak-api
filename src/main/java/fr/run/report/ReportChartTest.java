@@ -38,8 +38,8 @@ import javafx.scene.paint.Color;
 
 import fr.javafx.scene.chart.XYChartPane;
 import fr.javafx.scene.chart.axis.NumericAxis;
-import fr.javafx.scene.chart.plugins.behavior.XYChartPanManager;
-import fr.javafx.scene.chart.plugins.behavior.XYChartZoomManager;
+import fr.javafx.scene.chart.plugins.behavior.ChartPanner;
+import fr.javafx.scene.chart.plugins.behavior.ChartZoomer;
 import fr.javafx.scene.chart.plugins.indicators.XValueIndicator;
 import fr.javafx.scene.chart.plugins.indicators.YRangeIndicator;
 import fr.javafx.scene.chart.plugins.overlays.CrosshairIndicator;
@@ -79,10 +79,8 @@ public class ReportChartTest extends ReportApplicationBase {
 
 			XYChartPane<Number, Number> chartPane = new XYChartPane<>(lineChart);
 			chartPane.getPlugins().addAll(
-//											new Zoomer(), 
-//											new Panner(), 
-											new XYChartPanManager(), 
-											new XYChartZoomManager(), 
+											new ChartPanner(), 
+											new ChartZoomer(), 
 											new DataPointTooltip(), 
 											new CrosshairIndicator<>()
 											);

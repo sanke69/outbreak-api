@@ -1,3 +1,20 @@
+/**
+ * JavaFR
+ * Copyright (C) 2007-?XYZ  Steve PECHBERTI <steve.pechberti@laposte.net>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package fr.javafx.scene.chart.types.xy;
 
 import java.util.ArrayList;
@@ -7,7 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javafx.beans.NamedArg;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
@@ -16,8 +32,6 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.Axis;
-import javafx.scene.chart.XYChart.Data;
-import javafx.scene.chart.XYChart.Series;
 import javafx.scene.shape.ClosePath;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
@@ -28,17 +42,13 @@ import javafx.scene.shape.PathElement;
 public class NegativeBGAreaChart<X, Y> extends AreaChart<X, Y> {
     protected Map<Series<X, Y>, DoubleProperty> shadowSeriesYMultiplierMap = new HashMap<>();
 
-    // -------------- CONSTRUCTORS ----------------------------------------------
-
-    public NegativeBGAreaChart(@NamedArg("xAxis") Axis<X> xAxis, @NamedArg("yAxis") Axis<Y> yAxis) {
+    public NegativeBGAreaChart(Axis<X> xAxis, Axis<Y> yAxis) {
         this(xAxis, yAxis, FXCollections.<Series<X, Y>> observableArrayList());
     }
-
-    public NegativeBGAreaChart(@NamedArg("xAxis") Axis<X> xAxis, @NamedArg("yAxis") Axis<Y> yAxis, @NamedArg("data") ObservableList<Series<X, Y>> data) {
+    public NegativeBGAreaChart(Axis<X> xAxis, Axis<Y> yAxis, ObservableList<Series<X, Y>> data) {
         super(xAxis, yAxis, data);
     }
 
-    // -------------- METHODS ------------------------------------------------------------------------------------------
     @Override
     protected void seriesAdded(Series<X, Y> series, int seriesIndex) {
         DoubleProperty seriesYAnimMultiplier = new SimpleDoubleProperty(this, "seriesYMultiplier");
@@ -102,13 +112,9 @@ public class NegativeBGAreaChart<X, Y> extends AreaChart<X, Y> {
         }
     }
 
-    /**
-     * Gets the size of the data returning 0 if the data is null
-     *
-     * @return The number of items in data, or null if data is null
-     */
     public int getDataSize() {
         final ObservableList<Series<X, Y>> data = getData();
         return (data != null) ? data.size() : 0;
     }
+
 }

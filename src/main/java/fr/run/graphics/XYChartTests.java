@@ -1,4 +1,4 @@
-package fr.javafx.scene.chart;
+package fr.run.graphics;
 import java.util.Random;
 
 import javafx.application.Application;
@@ -11,6 +11,10 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import fr.javafx.scene.chart.XY;
+import fr.javafx.scene.chart.XYChartPane;
+import fr.javafx.scene.chart.XY.Constraint;
+import fr.javafx.scene.chart.XY.Symbols;
 import fr.javafx.scene.chart.plugins.behavior.ChartPanner;
 import fr.javafx.scene.chart.plugins.behavior.ChartSelecter;
 import fr.javafx.scene.chart.plugins.behavior.ChartZoomer;
@@ -58,7 +62,7 @@ public class XYChartTests extends Application {
         pane.getYAxis().addEventHandler(MouseEvent.ANY, me -> { if (me.getClickCount() == 2) pane.getYAxis().setAutoRanging(true); });
 
 
-        pane.setStyle(series1, new XY.Series.Style(Color.RED, 1d, XY.Symbols.cross.path, Color.RED, Color.RED, Color.RED));
+        pane.setStyle(series1, new XY.Series.Style(Color.RED, 1d, XY.Symbols.cross.path(), Color.RED, Color.RED, Color.RED));
         pane.setStyle(series2, new XY.Series.Style(Color.GREEN, 1d, null, Color.GREEN, Color.GREEN, Color.GREEN));
         
         primaryStage.setScene(new Scene(pane));

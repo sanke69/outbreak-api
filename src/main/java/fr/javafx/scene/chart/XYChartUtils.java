@@ -1,11 +1,26 @@
+/**
+ * JavaFR
+ * Copyright (C) 2007-?XYZ  Steve PECHBERTI <steve.pechberti@laposte.net>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package fr.javafx.scene.chart;
 
 import static fr.javafx.utils.FxUtils.getXShift;
 import static fr.javafx.utils.FxUtils.getYShift;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedList;
-import java.util.List;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
@@ -17,15 +32,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.chart.Axis;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.Chart;
 import javafx.scene.chart.ValueAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 
 public final class XYChartUtils {
@@ -49,24 +61,19 @@ public final class XYChartUtils {
 			throw new IllegalArgumentException("Expected an instance of ValueAxis");
 		}
 	
-		public static boolean hasBoundedRange(ValueAxis<?> axis) {
+		public static boolean 								hasBoundedRange(ValueAxis<?> axis) {
 			return axis.lowerBoundProperty().isBound() || axis.upperBoundProperty().isBound();
 		}
 	
-		public static void bindBounds(ValueAxis<?> axis, ValueAxis<?> observable) {
+		public static void 									bindBounds(ValueAxis<?> axis, ValueAxis<?> observable) {
 			axis.lowerBoundProperty().bind(observable.lowerBoundProperty());
 			axis.upperBoundProperty().bind(observable.upperBoundProperty());
 		}
 	
-		public static void unbindBounds(ValueAxis<?> axis) {
+		public static void 									unbindBounds(ValueAxis<?> axis) {
 			axis.lowerBoundProperty().unbind();
 			axis.upperBoundProperty().unbind();
 		}
-		
-		
-		
-		
-		
 
 		public static <T> void 								setLowerBound( Axis<T> axis, double _value) {
 			if(axis instanceof ValueAxis<?> valueAxis)
@@ -275,10 +282,6 @@ public final class XYChartUtils {
         return chart.lookup(".plot-content");
     }
 
-    static Pane getLegend(XYChart<?, ?> chart) {
-        return (Pane) chart.lookup(".chart-legend");
-    }
-
     static double getHorizontalInsets(Insets insets) {
         return insets.getLeft() + insets.getRight();
     }
@@ -287,30 +290,4 @@ public final class XYChartUtils {
         return insets.getTop() + insets.getBottom();
     }
 
-    /**
-     * Returns Chart instance containing given child node.
-     * 
-     * @param chartChildNode the node contained within the chart
-     * @return chart or {@code null} if the node does not belong to chart
-     */
-    static Chart getChart(final Node chartChildNode) {
-        Node node = chartChildNode;
-        while (node != null && !(node instanceof Chart)) {
-            node = node.getParent();
-        }
-        return (Chart) node;
-    }
-
-    @Deprecated
-    static List<Label> getChildLabels(List<? extends Parent> parents) {
-        List<Label> labels = new LinkedList<>();
-        for (Parent parent : parents) {
-            for (Node node : parent.getChildrenUnmodifiable()) {
-                if (node instanceof Label) {
-                    labels.add((Label) node);
-                }
-            }
-        }
-        return labels;
-    }
 }

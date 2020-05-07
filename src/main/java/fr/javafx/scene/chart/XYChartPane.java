@@ -1,3 +1,20 @@
+/**
+ * JavaFR
+ * Copyright (C) 2007-?XYZ  Steve PECHBERTI <steve.pechberti@laposte.net>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package fr.javafx.scene.chart;
 
 import static java.util.Objects.requireNonNull;
@@ -6,13 +23,13 @@ import static javafx.geometry.Side.LEFT;
 import static javafx.geometry.Side.RIGHT;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -24,8 +41,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.css.CssMetaData;
-import javafx.css.Styleable;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -46,12 +61,24 @@ import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.TilePane;
 
 public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
+	public static final String SCATTER_SYMBOL = ".chart-symbol";
+	public static final String LINE_SYMBOL    = ".chart-line-symbol";
+	public static final String LINE_SEGMENT   = ".chart-series-line";
+	public static final String AREA_SYMBOL    = ".chart-area-symbol";
+	public static final String AREA_SEGMENT   = ".chart-series-area-line";
+	public static final String AREA_REGION    = ".chart-series-area-fill";
+	public static final String LEGEND         = ".chart-legend";
+	public static final String LEGEND_SYMBOL  = ".chart-legend-item";
+	public static final String BUBBLE_CHART   = ".chart-bubble";
+	public static final String BAR_CHART      = ".chart-bar";
+	public static final String PIE_CHART      = ".chart-pie";
+	public static final String DEFAULT_COLOR  = ".default-color";
+
 	private static final String CHART_CSS         = XYChartPane.class.getResource("chart.css").toExternalForm();
 	private static final String CHART_OVERLAY_CSS = XYChartPane.class.getResource("chart-overlay.css").toExternalForm();
 
@@ -105,10 +132,12 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 	final XYChartStyle<X,Y> styles;
 
 	public XYChartPane(XYChart<X, Y> chart) {
+		super();
+		getStyleClass().add("chart-pane");
+
 		baseChart = requireNonNull(chart, "The chart must not be null");
 		XYChartUtils.getChartContent(baseChart).needsLayoutProperty().addListener(layoutRequestListener);
 
-		getStyleClass().add("chart-pane");
 		overlayCharts.addListener(overlayChartsChanged);
 		plugins.addListener(pluginsChanged);
 
@@ -448,12 +477,30 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 		}
 
 		void layout() {
+			updateLegend();
+
 			layoutTitle();
 			layoutLegend();
 			layoutBaseChart();
 			layoutOverlayCharts();
 		}
 
+		private void					updateLegend() {
+			List<Pane>  allLegends  = getAllCharts().stream()
+													.map(c -> (Pane) c.lookup(LEGEND))
+													.filter(Objects::nonNull)
+													.collect(toList());
+			List<Label> legendItems = allLegends	.stream()
+													.flatMap(p -> p.getChildrenUnmodifiable().stream())
+													.filter(n -> n instanceof Label)
+													.map(n -> (Label) n)
+													.collect(Collectors.toList());
+			legend.update(legendItems);
+
+			allLegends  . forEach(legend -> legend.setPrefSize(0, 0));
+			legendItems . forEach(item   -> item.setVisible(false));
+		}
+		
 		private void 					layoutTitle() {
 			getAllCharts().forEach(chart -> chart.setTitle(null));
 
@@ -487,16 +534,6 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 			}
 		}
 		private void 					layoutLegend() {
-			List<Pane>  allLegends  = getAllCharts().stream()
-													.map(XYChartUtils::getLegend)
-													.filter(Objects::nonNull)
-													.collect(toList());
-			List<Label> legendItems = XYChartUtils.getChildLabels(allLegends);
-
-			legend.update(legendItems);
-			legendItems.forEach(label -> label.setVisible(false));
-			allLegends.forEach(chartLegend -> chartLegend.setPrefSize(0, 0));
-
 			if(!isLegendVisible()) {
 				legend.resize(0, 0);
 				return;
@@ -508,7 +545,7 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 				legendHeight = legend.prefHeight(chartPaneWidth - left - right);
 				legendWidth  = legend.prefWidth(legendHeight);
 
-				legendX = left + (chartPaneWidth - left - right - legendWidth) / 2;
+				legendX      = left + (chartPaneWidth - left - right - legendWidth) / 2;
 
 				if (getLegendSide() == Side.TOP) {
 					legendY = top;
@@ -640,48 +677,41 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 
 	}
 
-	private static class LegendPane extends TilePane {
-		private static final String CHART_LEGEND_CSS = "chart-legend";
-		private static final int    GAP = 5;
+	static class LegendPane extends TilePane {
+		private static final int GAP = 5;
 
 		LegendPane() {
 			super(GAP, GAP);
-
 			setTileAlignment(Pos.CENTER_LEFT);
-			getStyleClass().setAll(CHART_LEGEND_CSS);
 		}
 
-		void 						update(List<Label> legendItems) {
-			if(legendItemsChanged(legendItems)) {
+		void update(List<Label> legendItems) {
+			if (legendItemsChanged(legendItems)) {
 				getChildren().clear();
 
 				for(Label item : legendItems)
-//					getChildren().add(item);
-					getChildren().add(clone(item));
+					getChildren().add( clone(item) );
 			}
 		}
 
-		private boolean 			legendItemsChanged(List<Label> legendItems) {
-			if(getChildren().size() != legendItems.size())
+		private boolean legendItemsChanged(List<Label> legendItems) {
+			if (getChildren().size() != legendItems.size())
 				return true;
 
-			for(int i = 0, size = getChildren().size(); i < size; i++) {
-				Label oldItem = getChildLabel(i);
+			for (int i = 0, size = getChildren().size(); i < size; i++) {
+				Label oldItem = (Label) getChildren().get(i);
 				Label newItem = legendItems.get(i);
 
-				if (legendLabelsDiffer(oldItem, newItem)
-				|| !oldItem.getStylesheets().equals(XYChartUtils.getChart(newItem).getStylesheets()))
+				if(legendLabelsDiffer(oldItem, newItem)
+				|| oldItem.getStyle().compareTo(newItem.getStyle()) != 0
+				|| !oldItem.getStylesheets().equals(newItem.getStylesheets()))
 					return true;
 
 			}
 			return false;
 		}
 
-		private Label 				getChildLabel(int index) {
-			return ((LegendLabelPane) getChildren().get(index)).getLabel();
-		}
-
-		private static boolean 		legendLabelsDiffer(Label label1, Label label2) {
+		private static boolean legendLabelsDiffer(Label label1, Label label2) {
 			if (!Objects.equals(label1.getText(), label2.getText())) {
 				return true;
 			}
@@ -693,53 +723,32 @@ public class XYChartPane<X, Y> extends Region implements XY.Chart<X, Y> {
 				Node graphic2 = label2.getGraphic();
 
 				if (!graphic1.getClass().equals(graphic2.getClass())
-						|| !graphic1.getStyleClass().equals(graphic2.getStyleClass())) {
+				|| !graphic1.getStyleClass().equals(graphic2.getStyleClass())) {
 					return true;
 				}
 			}
 			return false;
 		}
 
-		private static Node 		clone(Label src) {
-			Label label = new Label(src.getText());
-			label.getStyleClass().setAll(src.getStyleClass());
-			label.setAlignment(Pos.CENTER_LEFT);
-			label.setContentDisplay(ContentDisplay.LEFT);
-			if (src.getGraphic() != null && src.getGraphic().getClass().equals(Region.class)) {
+		private static Node clone(Label src) {
+			Label 
+			label = new Label(src.getText());
+			label . getStyleClass().setAll(src.getStyleClass());
+			label . setStyle( src.getStyle() );
+
+			label . setAlignment(Pos.CENTER_LEFT);
+			label . setContentDisplay(ContentDisplay.LEFT);
+			
+			if(src.getGraphic() != null 
+			&& src.getGraphic().getClass().equals(Region.class)) {
 				Region symbol = new Region();
 				symbol.getStyleClass().setAll(src.getGraphic().getStyleClass());
+				symbol.setStyle( src.getGraphic().getStyle() );
+
 				label.setGraphic(symbol);
 			}
 
-			label.getStylesheets().setAll(XYChartUtils.getChart(src).getStylesheets());
-
-			return new LegendLabelPane(label, XYChartUtils.getChart(src).getStyleClass());
-		}
-
-		@Deprecated
-		private static class LegendLabelPane extends StylelessBorderPane {
-
-			public LegendLabelPane(Label child, Collection<String> chartStyleClass) {
-				StylelessBorderPane 
-				chartLegendPane = new StylelessBorderPane();
-				chartLegendPane . setCenter(child);
-				chartLegendPane . getStyleClass().setAll(CHART_LEGEND_CSS);
-				setCenter(chartLegendPane);
-
-				getStyleClass().setAll(chartStyleClass);
-			}
-
-			Label getLabel() {
-				return (Label) ((BorderPane) getCenter()).getCenter();
-			}
-		}
-
-		@Deprecated
-		private static class StylelessBorderPane extends BorderPane {
-			@Override
-			public List<CssMetaData<? extends Styleable, ?>> getCssMetaData() {
-				return Collections.emptyList();
-			}
+			return label;
 		}
 
 	}
